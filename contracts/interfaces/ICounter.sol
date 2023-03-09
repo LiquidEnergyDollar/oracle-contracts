@@ -2,7 +2,6 @@
 pragma solidity >=0.8.17;
 
 /// @title  ICounter
-/// @author Solidity Template Authors
 /// @notice Increase or decrease a counter.
 /// @dev    This is where additional information goes.
 interface ICounter {

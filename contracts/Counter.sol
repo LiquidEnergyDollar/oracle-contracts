@@ -4,7 +4,6 @@ pragma solidity >=0.8.17;
 import {ICounter} from "./interfaces/ICounter.sol";
 
 /// @title  Counter
-/// @author Solidity Template Authors
 contract Counter is ICounter {
     int256 private count;
 
