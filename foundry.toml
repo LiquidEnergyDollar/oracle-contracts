@@ -6,8 +6,6 @@ optimizer_runs = 200
 # true for stack-too-deep error avoidance,
 # off for speedy builds (if it compiles)
 via_ir = false
-remappings = ["@chainlink/=lib/chainlink/"]
-
 
 [profile.default.optimizer_details]
 constantOptimizer = true

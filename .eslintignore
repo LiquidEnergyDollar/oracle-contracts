@@ -13,7 +13,6 @@
 **/media
 **/out
 **/types
-**/lib
 
 *.env
 *.log
