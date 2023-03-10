@@ -15,7 +15,6 @@ contract PriceFeedTest is Test {
     }
 
     function testGetBTCPerETH(int btcPrice, int ethPrice) public {
-
         // BTC chainlink contract
         vm.mockCall(
             btcOracle,
@@ -32,8 +31,7 @@ contract PriceFeedTest is Test {
         if (ethPrice <= 0 || btcPrice <= 0) {
             vm.expectRevert();
             priceFeed.getBTCPerETH();
-        }
-        else{            
+        } else {
             assertEq(priceFeed.getBTCPerETH(), (ethPrice / btcPrice));
         }
     }

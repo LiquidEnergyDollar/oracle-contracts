@@ -11,6 +11,7 @@
 **/media
 **/out
 **/types
+**/lib
 
 *.md
 *.env

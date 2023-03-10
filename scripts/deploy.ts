@@ -20,7 +20,6 @@ export async function deployPriceFeed(
     wallet: Wallet,
     gasOpts?: GasOptions,
 ): Promise<PriceFeed> {
-
     let priceFeedContract: PriceFeed;
     if (await isZkDeployment(wallet)) {
         const deployer = zkDeployer.fromEthWallet(hre, wallet);
@@ -33,7 +32,10 @@ export async function deployPriceFeed(
             }),
         )) as PriceFeed;
     } else {
-        const priceFeed: PriceFeed__factory = await hre.ethers.getContractFactory(`PriceFeed`, wallet);
+        const priceFeed: PriceFeed__factory = await hre.ethers.getContractFactory(
+            `PriceFeed`,
+            wallet,
+        );
         priceFeedContract = await deployWait(
             priceFeed.deploy(btcContract, ethContract, {
                 maxFeePerGas: gasOpts?.maxFeePerGas,
