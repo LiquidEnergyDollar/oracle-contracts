@@ -1,7 +1,7 @@
 import hre from "hardhat";
 
 import { chainIds, VERBOSE, ZK_EVM } from "../hardhat.config";
-import { Counter, Counter__factory } from "../types";
+import { PriceFeed, PriceFeed__factory } from "../types";
 import { deployWait } from "./utils";
 import { GasOptions } from "./types";
 import { Wallet } from "ethers";
@@ -13,31 +13,31 @@ import { Deployer as zkDeployer } from "@matterlabs/hardhat-zksync-deploy";
 // Also adds them to hardhat-tracer nameTags, which gives them a trackable name
 // for events when `npx hardhat test --logs` is used.
 
-// deployCounter deploys the Counter contract with an initial count value.
-export async function deployCounter(
+// deployPriceFeed deploys the PriceFeed contract.
+export async function deployPriceFeed(
+    btcContract: string,
+    ethContract: string,
     wallet: Wallet,
     gasOpts?: GasOptions,
-    initCount?: number,
-): Promise<Counter> {
-    if (initCount === undefined) {
-        initCount = 0;
-    }
-
-    let counterContract: Counter;
+): Promise<PriceFeed> {
+    let priceFeedContract: PriceFeed;
     if (await isZkDeployment(wallet)) {
         const deployer = zkDeployer.fromEthWallet(hre, wallet);
-        const zkArtifact = await deployer.loadArtifact(`Counter`);
-        counterContract = (await deployWait(
-            deployer.deploy(zkArtifact, [initCount], {
+        const zkArtifact = await deployer.loadArtifact(`PriceFeed`);
+        priceFeedContract = (await deployWait(
+            deployer.deploy(zkArtifact, [btcContract, ethContract], {
                 maxFeePerGas: gasOpts?.maxFeePerGas,
                 maxPriorityFeePerGas: gasOpts?.maxPriorityFeePerGas,
                 gasLimit: gasOpts?.gasLimit,
             }),
-        )) as Counter;
+        )) as PriceFeed;
     } else {
-        const counter: Counter__factory = await hre.ethers.getContractFactory(`Counter`, wallet);
-        counterContract = await deployWait(
-            counter.deploy(initCount, {
+        const priceFeed: PriceFeed__factory = await hre.ethers.getContractFactory(
+            `PriceFeed`,
+            wallet,
+        );
+        priceFeedContract = await deployWait(
+            priceFeed.deploy(btcContract, ethContract, {
                 maxFeePerGas: gasOpts?.maxFeePerGas,
                 maxPriorityFeePerGas: gasOpts?.maxPriorityFeePerGas,
                 gasLimit: gasOpts?.gasLimit,
@@ -45,10 +45,10 @@ export async function deployCounter(
         );
     }
 
-    if (VERBOSE) console.log(`Counter: ${counterContract.address}`);
-    hre.tracer.nameTags[counterContract.address] = `Counter`;
+    if (VERBOSE) console.log(`PriceFeed: ${priceFeedContract.address}`);
+    hre.tracer.nameTags[priceFeedContract.address] = `PriceFeed`;
 
-    return counterContract;
+    return priceFeedContract;
 }
 
 // isZkDeployment returns if ZK_EVM is true and the network is a supported zk rollup.

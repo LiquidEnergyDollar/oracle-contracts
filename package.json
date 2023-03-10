@@ -37,6 +37,7 @@
         "ut": "forge test"
     },
     "devDependencies": {
+        "@chainlink/contracts": "^0.6.1",
         "@float-capital/ds-test": "^0.0.1",
         "@matterlabs/hardhat-zksync-deploy": "^0.5.2",
         "@matterlabs/hardhat-zksync-solc": "^0.3.11-beta.1",
