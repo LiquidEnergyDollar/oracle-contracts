@@ -4,6 +4,8 @@ import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "./interfaces/IPriceFeed.sol";
 
 contract PriceFeed is IPriceFeed {
+    error InvalidPrice();
+
     AggregatorV3Interface internal btcUSD;
     AggregatorV3Interface internal ethUSD;
 
@@ -39,7 +41,10 @@ contract PriceFeed is IPriceFeed {
 
         // TODO: Check recency
 
-        require(btcUSDPrice > 0 && ethUSDPrice > 0, "Unexpected response from chainlink");
+        // prices has to be > 0
+        if(!(btcUSDPrice > 0 && ethUSDPrice > 0)) {
+            revert InvalidPrice();
+        }
 
         return (ethUSDPrice / btcUSDPrice);
     }
