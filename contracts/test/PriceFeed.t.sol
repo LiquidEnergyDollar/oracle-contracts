@@ -29,7 +29,7 @@ contract PriceFeedTest is Test {
             abi.encode(1, ethPrice, 1, 1, 1)
         );
         if (ethPrice <= 0 || btcPrice <= 0) {
-            vm.expectRevert();
+            vm.expectRevert(InvalidPrice.selector);
             priceFeed.getBTCPerETH();
         } else {
             assertEq(priceFeed.getBTCPerETH(), (ethPrice / btcPrice));

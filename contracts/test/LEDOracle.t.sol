@@ -14,14 +14,16 @@ contract LEDOracleTest is Test {
         vm.warp(KOOMEY_START_DATE + 1);
         ledOracle = new LEDOracle(bitcoinOracle, priceFeedOracle, 1);
     }
+
     function testInvalidBlockTime() public {
-        vm.warp(KOOMEY_START_DATE);        
+        vm.warp(KOOMEY_START_DATE);
         vm.expectRevert();
         ledOracle = new LEDOracle(bitcoinOracle, priceFeedOracle, 1);
     }
+
     function testInvalidDifficulty() public {
-        vm.warp(KOOMEY_START_DATE + 1);   
-        ledOracle = new LEDOracle(bitcoinOracle, priceFeedOracle, 1);     
+        vm.warp(KOOMEY_START_DATE + 1);
+        ledOracle = new LEDOracle(bitcoinOracle, priceFeedOracle, 1);
         vm.expectRevert();
         ledOracle.scaleDifficulty(0);
     }
@@ -33,16 +35,16 @@ contract LEDOracleTest is Test {
         vm.warp(currTimestamp);
 
         ledOracle = new LEDOracle(bitcoinOracle, priceFeedOracle, 1);
-        
+
         if (currDifficulty == 0) {
             vm.expectRevert();
             ledOracle.scaleDifficulty(currDifficulty);
         } else {
             uint timeDelta = currTimestamp - KOOMEY_START_DATE;
-            uint expectedImprovement = 2**(1 + timeDelta/KOOMEY_DOUBLE_TIME);
+            uint expectedImprovement = 2 ** (1 + timeDelta / KOOMEY_DOUBLE_TIME);
 
             uint256 scaledDiff = ledOracle.scaleDifficulty(currDifficulty);
-            
+
             assertEq(scaledDiff, currDifficulty / expectedImprovement);
         }
     }

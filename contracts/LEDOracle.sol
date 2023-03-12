@@ -5,9 +5,11 @@ import "./interfaces/IBitcoinOracle.sol";
 import "./interfaces/ILEDOracle.sol";
 
 /**
- * This contract is read from any time the LED price oracle is needed (e.g. 
- * minting LED, liquidations, etc). The contract’s main goal is to contain the
- * equation and state necessary for creating the LED price feed.
+ * @title LEDOracle
+ * @author LED Labs
+ * @notice This contract is read from any time the LED price oracle is needed
+ * (e.g. minting LED, liquidations, etc). The contract’s main goal is to
+ * contain the equation and state necessary for creating the LED price feed.
  */
 contract LEDOracle is ILEDOracle {
     IPriceFeed private priceFeedOracle;
@@ -18,21 +20,23 @@ contract LEDOracle is ILEDOracle {
     uint private constant KOOMEY_START_DATE = 1451635200;
     uint private constant KOOMEY_DOUBLE_TIME = 47304000;
 
-    constructor (
-        address priceFeedOracleAddress, 
-        address bitcoinOracleAddress, 
+    constructor(
+        address priceFeedOracleAddress,
+        address bitcoinOracleAddress,
         uint256 initScaleFactor
     ) {
-        require (block.timestamp > KOOMEY_START_DATE, "Invalid KOOMEY_START_DATE");
+        require(block.timestamp > KOOMEY_START_DATE, "Invalid KOOMEY_START_DATE");
         priceFeedOracle = IPriceFeed(priceFeedOracleAddress);
         bitcoinOracle = IBitcoinOracle(bitcoinOracleAddress);
         scaleFactor = initScaleFactor;
     }
 
-	// @notice Returns the LED per ETH
-    // Updates the contract state to allow for moving avg
+    /**
+     * @notice Returns the LED per ETH
+     * Updates the contract state to allow for moving avg
+     * @return The LED/ETH ratio
+     */
     function getLEDPerETH() external returns (uint256) {
-
         uint256 currDifficulty = bitcoinOracle.getCurrentEpochDifficulty();
         uint256 btcReward = bitcoinOracle.getBTCIssuancePerBlock();
         int256 btcPerETH = priceFeedOracle.getBTCPerETH();
@@ -47,13 +51,14 @@ contract LEDOracle is ILEDOracle {
     }
 
     /**
-     * Scale difficulty to account for energy efficiency improvements
+     * @notice Scale difficulty to account for energy efficiency improvements
      * Energy efficiency doubles in KOOMEY_DOUBLE_TIME
+     * @return The scaled difficulty based on Koomey's law
      */
     function scaleDifficulty(uint256 currDifficulty) external view returns (uint256) {
         require(currDifficulty > 0, "Unexpected bitcoin difficulty");
         uint timeDelta = block.timestamp - KOOMEY_START_DATE;
-        uint expectedImprovement = 2**(1 + timeDelta/KOOMEY_DOUBLE_TIME);
+        uint expectedImprovement = 2 ** (1 + timeDelta / KOOMEY_DOUBLE_TIME);
         return currDifficulty / expectedImprovement;
     }
 }

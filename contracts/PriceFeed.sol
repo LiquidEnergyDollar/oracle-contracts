@@ -3,6 +3,8 @@ pragma solidity >=0.8.17;
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "./interfaces/IPriceFeed.sol";
 
+error InvalidPrice();
+
 /**
  * @title Price Feed
  * @author LED Labs
@@ -10,8 +12,6 @@ import "./interfaces/IPriceFeed.sol";
  * @dev Watch out for the oracle manipulations attacks
  */
 contract PriceFeed is IPriceFeed {
-    error InvalidPrice();
-
     AggregatorV3Interface internal btcUSD;
     AggregatorV3Interface internal ethUSD;
 
@@ -30,6 +30,7 @@ contract PriceFeed is IPriceFeed {
     /**
      * @notice Queries Chainlink price feeds for ETH/USD + BTC/USD
      * Calculates BTC/ETH
+     * @return The BTC/ETH ratio
      */
     function getBTCPerETH() external view returns (int256) {
         (
@@ -49,7 +50,7 @@ contract PriceFeed is IPriceFeed {
 
         // TODO: Check recency
 
-        // prices has to be > 0
+        // prices have to be > 0
         if (!(btcUSDPrice > 0 && ethUSDPrice > 0)) {
             revert InvalidPrice();
         }
