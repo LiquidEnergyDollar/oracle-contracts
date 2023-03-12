@@ -3,7 +3,15 @@ pragma solidity >=0.8.17;
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "./interfaces/IPriceFeed.sol";
 
+/**
+ * @title Price Feed
+ * @author LED Labs
+ * @notice Provides a price oracle for the system
+ * @dev Watch out for the oracle manipulations attacks
+ */
 contract PriceFeed is IPriceFeed {
+    error InvalidPrice();
+
     AggregatorV3Interface internal btcUSD;
     AggregatorV3Interface internal ethUSD;
 
@@ -19,27 +27,32 @@ contract PriceFeed is IPriceFeed {
         ethUSD = AggregatorV3Interface(ethOracle);
     }
 
-    // Queries chainlink price feeds for ETH/USD + BTC/USD
-    // Calculates BTC/ETH
-    function getBTCPerETH() external view returns (int) {
+    /**
+     * @notice Queries Chainlink price feeds for ETH/USD + BTC/USD
+     * Calculates BTC/ETH
+     */
+    function getBTCPerETH() external view returns (int256) {
         (
             uint80 btcUSDRoundID,
-            int btcUSDPrice,
-            uint btcUSDStartedAt,
-            uint btcUSDTimeStamp,
+            int256 btcUSDPrice,
+            uint256 btcUSDStartedAt,
+            uint256 btcUSDTimeStamp,
             uint80 btcUSDAnsweredInRound
         ) = btcUSD.latestRoundData();
         (
             uint80 ethUSDRoundID,
-            int ethUSDPrice,
-            uint ethUSDStartedAt,
-            uint ethUSDTimeStamp,
+            int256 ethUSDPrice,
+            uint256 ethUSDStartedAt,
+            uint256 ethUSDTimeStamp,
             uint80 ethUSDAnsweredInRound
         ) = ethUSD.latestRoundData();
 
         // TODO: Check recency
 
-        require(btcUSDPrice > 0 && ethUSDPrice > 0, "Unexpected response from chainlink");
+        // prices has to be > 0
+        if (!(btcUSDPrice > 0 && ethUSDPrice > 0)) {
+            revert InvalidPrice();
+        }
 
         return (ethUSDPrice / btcUSDPrice);
     }
