@@ -29,7 +29,7 @@ contract PriceFeed is IPriceFeed {
 
     /**
      * @notice Queries Chainlink price feeds for ETH/USD + BTC/USD
-     * Calculates BTC/ETH
+     * Calculates BTC/ETH with 8 decimals of precision
      */
     function getBTCPerETH() external view returns (int256) {
         (
@@ -49,11 +49,13 @@ contract PriceFeed is IPriceFeed {
 
         // TODO: Check recency
 
-        // prices has to be > 0
-        if (!(btcUSDPrice > 0 && ethUSDPrice > 0)) {
+        // prices have to be > 0 or < 1e70
+        if (btcUSDPrice <= 0 || ethUSDPrice <= 0 ||
+            btcUSDPrice > 1e68 ||
+            ethUSDPrice > 1e68) {
             revert InvalidPrice();
         }
 
-        return (ethUSDPrice / btcUSDPrice);
+        return ((ethUSDPrice*10**8) / btcUSDPrice);
     }
 }
