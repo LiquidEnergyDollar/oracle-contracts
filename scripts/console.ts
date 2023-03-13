@@ -1,4 +1,4 @@
-import { BigNumber, Contract, ContractTransaction, utils, Wallet } from "ethers";
+import { BigNumber, Contract, utils, Wallet } from "ethers";
 import * as fs from "fs";
 import { ethers, network } from "hardhat";
 import * as path from "path";
@@ -20,13 +20,16 @@ async function main(wallet?: Wallet, gasOpts?: GasOptions): Promise<void> {
 
     switch (askForUsage()) {
         case Usage.DEPLOY: {
-            await trackDeployment(() => 
-                deployPriceFeed(
-                    "0xD702DD976Fb76Fffc2D3963D037dfDae5b04E593", 
-                    "0x13e3Ee699D1909E989722E753853AE30b17e08c5", 
-                    wallet!, 
-                    gasOpts
-                ), `PriceFeed`);
+            await trackDeployment(
+                () =>
+                    deployPriceFeed(
+                        `0xD702DD976Fb76Fffc2D3963D037dfDae5b04E593`,
+                        `0x13e3Ee699D1909E989722E753853AE30b17e08c5`,
+                        wallet!,
+                        gasOpts,
+                    ),
+                `PriceFeed`,
+            );
             void main(wallet, gasOpts);
             break;
         }
@@ -34,7 +37,7 @@ async function main(wallet?: Wallet, gasOpts?: GasOptions): Promise<void> {
             const addr = askForContract(`PriceFeed`);
             const priceFeed: PriceFeed = await ethers.getContractAt(`PriceFeed`, addr);
 
-            let btcPerETH: BigNumber = await priceFeed.getBTCPerETH();
+            const btcPerETH: BigNumber = await priceFeed.getBTCPerETH();
             console.log(`current btcPerETH: ${btcPerETH}`);
             void main(wallet, gasOpts);
             return;

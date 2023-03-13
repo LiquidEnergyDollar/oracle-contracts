@@ -28,8 +28,7 @@ contract PriceFeedTest is Test {
     function testGetBTCPerETHFuzzer(int256 btcPrice, int256 ethPrice) public {
         vm.assume(btcPrice > 0 && ethPrice > 0);
         // Allow room for 8 decimal places
-        vm.assume(btcPrice <= 1e68 &&
-            ethPrice <= 1e68);
+        vm.assume(btcPrice <= 1e68 && ethPrice <= 1e68);
         callGetBTCPerETHWithInput(btcPrice, ethPrice);
     }
 
@@ -55,7 +54,7 @@ contract PriceFeedTest is Test {
         // Expect the result to be .075
         assertEq(callGetBTCPerETHWithInput(btcPrice, ethPrice), 1);
 
-        // max value 
+        // max value
         btcPrice = 1e68;
         // max value
         ethPrice = 1e68;
@@ -63,11 +62,7 @@ contract PriceFeedTest is Test {
         assertEq(callGetBTCPerETHWithInput(btcPrice, ethPrice), 100000000);
     }
 
-    function callGetBTCPerETHWithInput(
-        int256 btcPrice,
-        int256 ethPrice
-    ) private returns (int256) {
-        
+    function callGetBTCPerETHWithInput(int256 btcPrice, int256 ethPrice) private returns (int256) {
         // BTC chainlink contract
         vm.mockCall(
             btcOracle,
@@ -81,7 +76,7 @@ contract PriceFeedTest is Test {
             abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
             abi.encode(1, ethPrice, 1, 1, 1)
         );
-        
+
         return priceFeed.getBTCPerETH();
     }
 }
