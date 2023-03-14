@@ -1,10 +1,10 @@
-import { BigNumber, Contract, ContractTransaction, utils, Wallet } from "ethers";
+import { BigNumber, Contract, utils, Wallet } from "ethers";
 import * as fs from "fs";
 import { ethers, network } from "hardhat";
 import * as path from "path";
 import { keyInSelect, keyInYNStrict, question } from "readline-sync";
-import { Counter } from "../types";
-import { deployCounter } from "./deploy";
+import { PriceFeed } from "../types";
+import { deployPriceFeed } from "./deploy";
 import { chainIds, explorerUrl, GAS_MODE, UrlType } from "../hardhat.config";
 import { Deployment, DeploymentContract, Deployments, GasOptions } from "./types";
 import { FeeData } from "@ethersproject/providers";
@@ -20,49 +20,25 @@ async function main(wallet?: Wallet, gasOpts?: GasOptions): Promise<void> {
 
     switch (askForUsage()) {
         case Usage.DEPLOY: {
-            await trackDeployment(() => deployCounter(wallet!, gasOpts, 0), `Counter`);
+            await trackDeployment(
+                () =>
+                    deployPriceFeed(
+                        `0xD702DD976Fb76Fffc2D3963D037dfDae5b04E593`,
+                        `0x13e3Ee699D1909E989722E753853AE30b17e08c5`,
+                        wallet!,
+                        gasOpts,
+                    ),
+                `PriceFeed`,
+            );
             void main(wallet, gasOpts);
             break;
         }
         case Usage.CALL: {
-            const addr = askForContract(`Counter`);
-            const counter: Counter = await ethers.getContractAt(`Counter`, addr);
+            const addr = askForContract(`PriceFeed`);
+            const priceFeed: PriceFeed = await ethers.getContractAt(`PriceFeed`, addr);
 
-            let tx: ContractTransaction | undefined = undefined;
-            let count: BigNumber;
-            switch (askFor(`function call`)) {
-                case `incrementCount`:
-                    tx = await counter.incrementCount({
-                        maxFeePerGas: gasOpts?.maxFeePerGas,
-                        maxPriorityFeePerGas: gasOpts?.maxPriorityFeePerGas,
-                        gasLimit: gasOpts?.gasLimit,
-                    });
-                    break;
-                case `decrementCount`:
-                    tx = await counter.decrementCount({
-                        maxFeePerGas: gasOpts?.maxFeePerGas,
-                        maxPriorityFeePerGas: gasOpts?.maxPriorityFeePerGas,
-                        gasLimit: gasOpts?.gasLimit,
-                    });
-                    break;
-                case `setCount`:
-                    count = BigNumber.from(askFor(`count`));
-                    tx = await counter.setCount(count, {
-                        maxFeePerGas: gasOpts?.maxFeePerGas,
-                        maxPriorityFeePerGas: gasOpts?.maxPriorityFeePerGas,
-                        gasLimit: gasOpts?.gasLimit,
-                    });
-                    break;
-                default:
-                    count = await counter.getCount();
-                    console.log(`current count: ${count}`);
-            }
-            if (tx != undefined) {
-                await tx.wait();
-                console.log(
-                    `transaction: ${explorerUrl(network.config.chainId, UrlType.TX, tx.hash)}`,
-                );
-            }
+            const btcPerETH: BigNumber = await priceFeed.getBTCPerETH();
+            console.log(`current btcPerETH: ${btcPerETH}`);
             void main(wallet, gasOpts);
             return;
         }
