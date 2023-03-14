@@ -51,7 +51,7 @@ contract PriceFeedTest is Test {
         btcPrice = 150000000000000000000;
         // $.000015
         ethPrice = 150;
-        // Expect the result to be 0.000000000000000001                       
+        // Expect the result to be 0.000000000000000001
         assertEq(callGetBTCPerETHWithInput(btcPrice, ethPrice), 1);
 
         // max value

@@ -54,6 +54,6 @@ contract PriceFeed is IPriceFeed {
             revert InvalidPrice();
         }
 
-        return (uint256) ((ethUSDPrice * 10 ** 18) / btcUSDPrice);
+        return (uint256)((ethUSDPrice * 10 ** 18) / btcUSDPrice);
     }
 }
