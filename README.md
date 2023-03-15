@@ -92,16 +92,24 @@ npm run test
 
 This will run everything in [integration/](./integration/), which utilizes [Hardhat](https://hardhat.org/hardhat-runner/docs/getting-started#overview) to tests for full usage scenarios.
 
-#### [Deploy to Goerli test network](#deploy-to-goerli-test-network)
+#### [Deploy to Optimism network](#deploy-to-optimism-network)
 
 Create a [.env](./.env) file matching the variables seen in [.env.example](./.env.example).
+
+Generate a mnemonic locally using ethers:
+```
+const ethers = require('ethers')
+const wallet = ethers.Wallet.createRandom()
+console.log('mnemonic:', wallet.mnemonic.phrase)
+```
+Set this outputted mnemonic in the .env file for your `MNEMONIC`.
 
 Getting fully prepared may involve getting a [`INFURA_API_KEY`](https://docs.infura.io/infura/getting-started) by signing up, and getting some test ETH on your target network via a [facet](https://goerlifaucet.com/).
 
 Then run:
 
 ```sh
-npm run deploy -- --network goerli
+npm run deploy -- --network optimism
 ```
 
 This will automatically update [deployments.json](./deployments.json), which gets exported with your [NPM package](./package.json). It will also become the default address to use when interacting with your contracts with the [CLI](./scripts/console).

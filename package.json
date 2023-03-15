@@ -64,6 +64,7 @@
         "eslint-plugin-prettier": "^4.2.1",
         "ethereum-waffle": "^3.4.4",
         "ethers": "^5.7.2",
+        "forge-std": "https://github.com/foundry-rs/forge-std#73a504d2cf6f37b7ce285b479f4c681f76e95f1b",
         "hardhat": "^2.12.5",
         "hardhat-contract-sizer": "^2.6.1",
         "hardhat-gas-reporter": "^1.0.9",
@@ -79,5 +80,9 @@
         "typechain": "^8.1.1",
         "typescript": "^4.9.4",
         "zksync-web3": "^0.11.1"
+    },
+    "dependencies": {
+        "@keep-network/bitcoin-spv-sol": "^3.4.0-solc-0.8",
+        "@openzeppelin/contracts": "^4.8.2"
     }
 }

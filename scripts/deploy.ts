@@ -38,8 +38,8 @@ export async function deployPriceFeed(
         );
         priceFeedContract = await deployWait(
             priceFeed.deploy(btcContract, ethContract, {
-                maxFeePerGas: gasOpts?.maxFeePerGas,
-                maxPriorityFeePerGas: gasOpts?.maxPriorityFeePerGas,
+                //maxFeePerGas: gasOpts?.maxFeePerGas,
+                //maxPriorityFeePerGas: gasOpts?.maxPriorityFeePerGas,
                 gasLimit: gasOpts?.gasLimit,
             }),
         );

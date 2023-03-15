@@ -1,8 +1,13 @@
 {
     "deployments": [
         {
-            "network": "goerli",
-            "contracts": []
+            "network": "optimism",
+            "contracts": [
+                {
+                    "name": "PriceFeed",
+                    "address": "0x9fdEb7D1AaCd16ecD2e5B7a1e8DBEee8D48130D6"
+                }
+            ]
         }
     ]
 }
