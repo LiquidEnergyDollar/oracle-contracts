@@ -3,9 +3,8 @@ pragma solidity >=0.8.17;
 import "./interfaces/IPriceFeed.sol";
 import "./interfaces/IBitcoinOracle.sol";
 import "./interfaces/ILEDOracle.sol";
-import "./ExpMovingAvg.sol";
+import "./utils/ExpMovingAvg.sol";
 
-error InvalidInput();
 error InvalidExchangeRate();
 error InvalidBTCDifficulty();
 
@@ -37,7 +36,9 @@ contract LEDOracle is ILEDOracle {
         uint256 initScaleFactor,
         uint256 initKoomeyTimeInMonths
     ) {
-        if (block.timestamp <= KOOMEY_START_DATE || initKoomeyTimeInMonths > 100) {
+        if (block.timestamp <= KOOMEY_START_DATE || 
+            initKoomeyTimeInMonths <= 4 || 
+            initKoomeyTimeInMonths > 100) {
             revert InvalidInput();
         }
         priceFeedOracle = IPriceFeed(priceFeedOracleAddress);

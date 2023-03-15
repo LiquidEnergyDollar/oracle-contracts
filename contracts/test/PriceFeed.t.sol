@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity >=0.8.17;
 
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "./utils/Test.sol";
-import "forge-std/src/console2.sol";
 import "../PriceFeed.sol";
 
 contract PriceFeedTest is Test {
@@ -27,8 +26,6 @@ contract PriceFeedTest is Test {
     }
 
     function testGetBTCPerETHFuzzer(int256 btcPrice, int256 ethPrice) public {
-        console2.log("btcPrice:", btcPrice);
-        console2.log("Hello from forge-std");
         vm.assume(btcPrice > 0 && ethPrice > 0);
         // Allow room for 8 decimal places
         vm.assume(btcPrice <= 1e58 && ethPrice <= 1e58);
