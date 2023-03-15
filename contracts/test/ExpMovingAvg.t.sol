@@ -33,18 +33,15 @@ contract EMATest is Test {
     }
 
     function testIntraEpochAvgRandomSmoothing(
-        uint256 seedValue, 
-        uint256 addValue, 
-        uint256 smoothingFactorSeed) public {
+        uint256 seedValue,
+        uint256 addValue,
+        uint256 smoothingFactorSeed
+    ) public {
         // Allow room for 18 decimal places
         vm.assume(addValue < 1e59 && seedValue < 1e59);
-        
+
         // smoothingFactor > 0 and <= 1000
-        uint smoothingFactor = common.convertToRange(
-            smoothingFactorSeed,
-            0,
-            1000
-        );
+        uint smoothingFactor = common.convertToRange(smoothingFactorSeed, 0, 1000);
 
         expMovingAvg = new ExpMovingAvg(seedValue, smoothingFactor);
         values = [1e18, 2e18, 3e18, addValue];
@@ -59,7 +56,7 @@ contract EMATest is Test {
         values = [1e20, 1e18, 1e16, addValue];
         testEMA(seedValue, smoothingFactor, values);
     }
-    
+
     function testCrossEpochAvg(uint256 addValue) public {
         vm.warp(KOOMEY_START_DATE);
         testIntraEpochAvg(1e18, 4e18);
@@ -100,15 +97,15 @@ contract EMATest is Test {
 
         testIntraEpochAvg(seedValue, 4e18);
     }
-    
+
     function testEMA(uint256 seedValue, uint smoothingFactor, uint[] memory valuesToAdd) private {
         expMovingAvg = new ExpMovingAvg(seedValue, smoothingFactor);
         uint sum = 0;
         for (uint i = 0; i < valuesToAdd.length; i++) {
             sum += valuesToAdd[i];
             uint currAvg = expMovingAvg.pushValueAndGetAvg(valuesToAdd[i]);
-            
-            int delta = int(sum/(i+1)) - int(seedValue);
+
+            int delta = int(sum / (i + 1)) - int(seedValue);
             int weightedDelta = delta / int(smoothingFactor);
             uint expected = uint(weightedDelta + int(seedValue));
             assertEq(currAvg, expected);

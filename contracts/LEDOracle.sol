@@ -36,9 +36,11 @@ contract LEDOracle is ILEDOracle {
         uint256 initScaleFactor,
         uint256 initKoomeyTimeInMonths
     ) {
-        if (block.timestamp <= KOOMEY_START_DATE || 
-            initKoomeyTimeInMonths <= 4 || 
-            initKoomeyTimeInMonths > 100) {
+        if (
+            block.timestamp <= KOOMEY_START_DATE ||
+            initKoomeyTimeInMonths <= 4 ||
+            initKoomeyTimeInMonths > 100
+        ) {
             revert InvalidInput();
         }
         priceFeedOracle = IPriceFeed(priceFeedOracleAddress);

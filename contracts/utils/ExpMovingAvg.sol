@@ -5,7 +5,7 @@ error InvalidInput();
 /**
  * @title ExpMovingAvg
  * @author LED Labs
- * @notice Tracks an exponential moving average across epochs. Averages all 
+ * @notice Tracks an exponential moving average across epochs. Averages all
  * values within an epoch. Once the epoch boundary is crossed, the intra-epoch
  * avg is added to the global exponential avg.
  */
@@ -22,7 +22,7 @@ contract ExpMovingAvg {
      * @notice Creates a new EMA with the provided parameters.
      * @param seedValue The value to represent the historic moving avg
      * @param initSmoothingFactor 1/(traditional smoothing fraction)
-     * Ex. if the traditional EMA smoothing factor is .05, this input should 
+     * Ex. if the traditional EMA smoothing factor is .05, this input should
      * be 20.
      */
     constructor(uint256 seedValue, uint256 initSmoothingFactor) {

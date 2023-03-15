@@ -36,17 +36,9 @@ contract LEDOracleTest is Test {
         uint koomeyMonthsSeed
     ) public {
         // timestamp > 2016 and <= 2116
-        uint currTimestamp = common.convertToRange(
-            currTimestampSeed,
-            KOOMEY_START_DATE,
-            MAX_DATE
-        );
+        uint currTimestamp = common.convertToRange(currTimestampSeed, KOOMEY_START_DATE, MAX_DATE);
         // Koomey months > 4 and <= 100
-        uint koomeyMonths = common.convertToRange(
-            koomeyMonthsSeed,
-            4,
-            100
-        );
+        uint koomeyMonths = common.convertToRange(koomeyMonthsSeed, 4, 100);
         vm.warp(currTimestamp);
 
         ledOracle = new LEDOracle(bitcoinOracle, priceFeedOracle, 1e18, 20, 1, koomeyMonths);
