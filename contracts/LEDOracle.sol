@@ -3,7 +3,7 @@ pragma solidity >=0.8.17;
 import "./interfaces/IPriceFeed.sol";
 import "./interfaces/IBitcoinOracle.sol";
 import "./interfaces/ILEDOracle.sol";
-import "./utils/ExpMovingAvg.sol";
+import "./ExpMovingAvg.sol";
 
 error InvalidInput();
 error InvalidExchangeRate();
