@@ -37,7 +37,7 @@ contract LEDOracle is ILEDOracle {
         uint256 initScaleFactor,
         uint256 initKoomeyTimeInMonths
     ) {
-        if(block.timestamp <= KOOMEY_START_DATE || initKoomeyTimeInMonths > 100) {
+        if (block.timestamp <= KOOMEY_START_DATE || initKoomeyTimeInMonths > 100) {
             revert InvalidInput();
         }
         priceFeedOracle = IPriceFeed(priceFeedOracleAddress);
@@ -57,7 +57,7 @@ contract LEDOracle is ILEDOracle {
         uint256 btcReward = bitcoinOracle.getBTCIssuancePerBlock();
         uint256 btcPerETH = priceFeedOracle.getBTCPerETH();
 
-        if(btcPerETH <= 0) {
+        if (btcPerETH <= 0) {
             revert InvalidExchangeRate();
         }
 
@@ -78,7 +78,7 @@ contract LEDOracle is ILEDOracle {
      * @return The scaled difficulty based on Koomey's law
      */
     function scaleDifficulty(uint256 currDifficulty) external view returns (uint256) {
-        if(currDifficulty <= 0) {
+        if (currDifficulty <= 0) {
             revert InvalidBTCDifficulty();
         }
         uint timeDelta = block.timestamp - KOOMEY_START_DATE;

@@ -27,8 +27,8 @@ contract PriceFeedTest is Test {
     }
 
     function testGetBTCPerETHFuzzer(int256 btcPrice, int256 ethPrice) public {
-        console2.log('btcPrice:', btcPrice);
-        console2.log('Hello from forge-std');
+        console2.log("btcPrice:", btcPrice);
+        console2.log("Hello from forge-std");
         vm.assume(btcPrice > 0 && ethPrice > 0);
         // Allow room for 8 decimal places
         vm.assume(btcPrice <= 1e58 && ethPrice <= 1e58);

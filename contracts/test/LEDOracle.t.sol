@@ -28,7 +28,11 @@ contract LEDOracleTest is Test {
         ledOracle.scaleDifficulty(0);
     }
 
-    function testKoomeysLaw(uint256 currDifficulty, uint currTimestamp, uint256 koomeyMonths) public {
+    function testKoomeysLaw(
+        uint256 currDifficulty,
+        uint currTimestamp,
+        uint256 koomeyMonths
+    ) public {
         // timestamp is between 2016 and 2116
         vm.assume(currTimestamp > KOOMEY_START_DATE);
         vm.assume(currTimestamp < 4607308800);
@@ -42,7 +46,7 @@ contract LEDOracleTest is Test {
             ledOracle.scaleDifficulty(currDifficulty);
         } else {
             uint timeDelta = currTimestamp - KOOMEY_START_DATE;
-            uint expectedImprovement = 2 ** (1 + timeDelta / koomeyMonths * SECONDS_PER_MONTH);
+            uint expectedImprovement = 2 ** (1 + (timeDelta / koomeyMonths) * SECONDS_PER_MONTH);
 
             uint256 scaledDiff = ledOracle.scaleDifficulty(currDifficulty);
 
