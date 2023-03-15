@@ -7,7 +7,7 @@ describe("BTC Relay", async () => {
     let btcRelay: BTCRelay;
 
     beforeEach(async () => {
-        const factory = await ethers.getContractFactory('BTCRelay');
+        const factory = await ethers.getContractFactory("BTCRelay");
         btcRelay = await factory.deploy();
     });
 
@@ -25,5 +25,5 @@ describe("BTC Relay", async () => {
 
         expect(await btcRelay.getPrevEpochDifficulty()).to.equal(5646403851534);
         expect(await btcRelay.getCurrentEpochDifficulty()).to.equal(5106422924659);
-    })
-})
+    });
+});

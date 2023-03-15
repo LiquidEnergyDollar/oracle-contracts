@@ -1,12 +1,7 @@
 import hre from "hardhat";
 
 import { chainIds, VERBOSE, ZK_EVM } from "../hardhat.config";
-import {
-    BTCRelay,
-    BTCRelay__factory,
-    PriceFeed,
-    PriceFeed__factory
-} from "../types";
+import { BTCRelay, BTCRelay__factory, PriceFeed, PriceFeed__factory } from "../types";
 import { deployWait } from "./utils";
 import { GasOptions } from "./types";
 import { Wallet } from "ethers";
@@ -19,10 +14,7 @@ import { Deployer as zkDeployer } from "@matterlabs/hardhat-zksync-deploy";
 // for events when `npx hardhat test --logs` is used.
 
 // deployBTCRelay deploys the BTCRelay contract.
-export async function deployBTCRelay(
-    wallet: Wallet,
-    gasOpts?: GasOptions,
-): Promise<BTCRelay> {
+export async function deployBTCRelay(wallet: Wallet, gasOpts?: GasOptions): Promise<BTCRelay> {
     let btcRelayContract: BTCRelay;
     if (await isZkDeployment(wallet)) {
         const deployer = zkDeployer.fromEthWallet(hre, wallet);
@@ -35,10 +27,7 @@ export async function deployBTCRelay(
             }),
         )) as BTCRelay;
     } else {
-        const btcRelay: BTCRelay__factory = await hre.ethers.getContractFactory(
-            `BTCRelay`,
-            wallet,
-        );
+        const btcRelay: BTCRelay__factory = await hre.ethers.getContractFactory(`BTCRelay`, wallet);
         btcRelayContract = await deployWait(
             btcRelay.deploy({
                 //maxFeePerGas: gasOpts?.maxFeePerGas,
