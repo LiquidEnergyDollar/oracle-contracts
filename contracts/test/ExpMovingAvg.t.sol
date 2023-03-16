@@ -3,33 +3,49 @@ pragma solidity >=0.8.17;
 import "./utils/Test.sol";
 import "./utils/Common.sol";
 import "../LEDOracle.sol";
+import "../utils/ExpMovingAvg.sol";
 import "forge-std/src/console2.sol";
 
+contract TestAccessControl {
+
+    function tryToPushValueAndGetAvg(ExpMovingAvg expMovingAvg) public {
+        expMovingAvg.pushValueAndGetAvg(1e18);
+    }
+}
+
 contract EMATest is Test {
-    ExpMovingAvg private expMovingAvg;
-    uint256[] private values;
+    ExpMovingAvg private _expMovingAvg;
+    uint256[] private _values;
     // One day
     uint256 private constant EPOCH_PERIOD_IN_SEC = 86400;
     uint256 private constant KOOMEY_START_DATE = 1451635200;
+    uint256 private constant EXAMPLE_SMOOTHING_FACTOR = 20;
 
     function testConstructorSuccess() public {
-        expMovingAvg = new ExpMovingAvg(1e18, 20);
+        _expMovingAvg = new ExpMovingAvg(1e18, 20);
     }
 
     function testConstructorFailures() public {
         vm.expectRevert();
-        expMovingAvg = new ExpMovingAvg(1e18, 1001);
+        _expMovingAvg = new ExpMovingAvg(1e18, 1001);
         vm.expectRevert();
-        expMovingAvg = new ExpMovingAvg(1e18, 0);
+        _expMovingAvg = new ExpMovingAvg(1e18, 0);
+    }
+    function testAccessControl() public {
+        // Owner should be this EMATest contract
+        _expMovingAvg = new ExpMovingAvg(1e18, 20);
+        TestAccessControl ac = new TestAccessControl();
+        // Calling pushValueAndGetAvg from another contract should fail
+        vm.expectRevert();
+        ac.tryToPushValueAndGetAvg(_expMovingAvg);
     }
 
     function testIntraEpochAvg(uint256 seedValue, uint256 addValue) public {
         // Allow room for 18 decimal places
         vm.assume(addValue < 1e59 && seedValue < 1e59);
-        uint smoothingFactor = 20;
-        expMovingAvg = new ExpMovingAvg(seedValue, smoothingFactor);
-        values = [1e18, 2e18, 3e18, addValue];
-        testEMA(seedValue, smoothingFactor, values);
+        _expMovingAvg = new ExpMovingAvg(seedValue, EXAMPLE_SMOOTHING_FACTOR);
+        _values = [1e18, 2e18, 3e18, addValue];
+        testEMA(seedValue, EXAMPLE_SMOOTHING_FACTOR, _values);
     }
 
     function testIntraEpochAvgRandomSmoothing(
@@ -43,18 +59,17 @@ contract EMATest is Test {
         // smoothingFactor > 0 and <= 1000
         uint smoothingFactor = common.convertToRange(smoothingFactorSeed, 0, 1000);
 
-        expMovingAvg = new ExpMovingAvg(seedValue, smoothingFactor);
-        values = [1e18, 2e18, 3e18, addValue];
-        testEMA(seedValue, smoothingFactor, values);
+        _expMovingAvg = new ExpMovingAvg(seedValue, smoothingFactor);
+        _values = [1e18, 2e18, 3e18, addValue];
+        testEMA(seedValue, smoothingFactor, _values);
     }
 
     function testDescendingIntraEpochAvg(uint256 seedValue, uint256 addValue) public {
         // Allow room for 18 decimal places
         vm.assume(addValue < 1e59 && seedValue < 1e59);
-        uint smoothingFactor = 20;
-        expMovingAvg = new ExpMovingAvg(seedValue, smoothingFactor);
-        values = [1e20, 1e18, 1e16, addValue];
-        testEMA(seedValue, smoothingFactor, values);
+        _expMovingAvg = new ExpMovingAvg(seedValue, EXAMPLE_SMOOTHING_FACTOR);
+        _values = [1e20, 1e18, 1e16, addValue];
+        testEMA(seedValue, EXAMPLE_SMOOTHING_FACTOR, _values);
     }
 
     function testCrossEpochAvg(uint256 addValue) public {
@@ -90,7 +105,7 @@ contract EMATest is Test {
         vm.assume(addValue < 1e59);
         vm.warp(KOOMEY_START_DATE);
         testIntraEpochAvg(addValue, 4e18);
-        uint seedValue = expMovingAvg.getHistoricAvg();
+        uint seedValue = _expMovingAvg.getHistoricAvg();
 
         // next epoch
         vm.warp(KOOMEY_START_DATE + EPOCH_PERIOD_IN_SEC);
@@ -98,12 +113,12 @@ contract EMATest is Test {
         testIntraEpochAvg(seedValue, 4e18);
     }
 
-    function testEMA(uint256 seedValue, uint smoothingFactor, uint[] memory valuesToAdd) private {
-        expMovingAvg = new ExpMovingAvg(seedValue, smoothingFactor);
+    function testEMA(uint256 seedValue, uint smoothingFactor, uint[] memory _valuesToAdd) private {
+        _expMovingAvg = new ExpMovingAvg(seedValue, smoothingFactor);
         uint sum = 0;
-        for (uint i = 0; i < valuesToAdd.length; i++) {
-            sum += valuesToAdd[i];
-            uint currAvg = expMovingAvg.pushValueAndGetAvg(valuesToAdd[i]);
+        for (uint i = 0; i < _valuesToAdd.length; i++) {
+            sum += _valuesToAdd[i];
+            uint currAvg = _expMovingAvg.pushValueAndGetAvg(_valuesToAdd[i]);
 
             int delta = int(sum / (i + 1)) - int(seedValue);
             int weightedDelta = delta / int(smoothingFactor);

@@ -7,27 +7,27 @@ import "../LEDOracle.sol";
 contract LEDOracleTest is Test {
     uint256 private constant KOOMEY_START_DATE = 1451635200; // 2016
     uint256 private constant MAX_DATE = 4607308800; // 2116
-    uint256 private constant SECONDS_PER_MONTH = 2592000;
-    LEDOracle public ledOracle;
-    address private bitcoinOracle = address(0);
-    address private priceFeedOracle = address(1);
+    uint256 private constant SECONDS_PER_THIRTY_DAYS = 2592000;
+    LEDOracle public _ledOracle;
+    address private _bitcoinOracle = address(0);
+    address private _priceFeedOracle = address(1);
 
     function testConstructorSuccess() public {
         vm.warp(KOOMEY_START_DATE + 1);
-        ledOracle = new LEDOracle(bitcoinOracle, priceFeedOracle, 1e18, 20, 1, 15);
+        _ledOracle = new LEDOracle(_bitcoinOracle, _priceFeedOracle, 1e18, 20, 1, 15);
     }
 
     function testInvalidBlockTime() public {
         vm.warp(KOOMEY_START_DATE);
         vm.expectRevert();
-        ledOracle = new LEDOracle(bitcoinOracle, priceFeedOracle, 1e18, 20, 1, 15);
+        _ledOracle = new LEDOracle(_bitcoinOracle, _priceFeedOracle, 1e18, 20, 1, 15);
     }
 
     function testInvalidDifficulty() public {
         vm.warp(KOOMEY_START_DATE + 1);
-        ledOracle = new LEDOracle(bitcoinOracle, priceFeedOracle, 1e18, 20, 1, 15);
+        _ledOracle = new LEDOracle(_bitcoinOracle, _priceFeedOracle, 1e18, 20, 1, 15);
         vm.expectRevert();
-        ledOracle.scaleDifficulty(0);
+        _ledOracle.scaleDifficulty(0);
     }
 
     function testKoomeysLaw(
@@ -41,17 +41,17 @@ contract LEDOracleTest is Test {
         uint koomeyMonths = common.convertToRange(koomeyMonthsSeed, 4, 100);
         vm.warp(currTimestamp);
 
-        ledOracle = new LEDOracle(bitcoinOracle, priceFeedOracle, 1e18, 20, 1, koomeyMonths);
+        _ledOracle = new LEDOracle(_bitcoinOracle, _priceFeedOracle, 1e18, 20, 1, koomeyMonths);
 
         if (currDifficulty == 0) {
             vm.expectRevert();
-            ledOracle.scaleDifficulty(currDifficulty);
+            _ledOracle.scaleDifficulty(currDifficulty);
         } else {
             uint timeDelta = currTimestamp - KOOMEY_START_DATE;
-            uint koomeyPeriod = (koomeyMonths * SECONDS_PER_MONTH);
+            uint koomeyPeriod = (koomeyMonths * SECONDS_PER_THIRTY_DAYS);
             uint expectedImprovement = 2 ** (1 + timeDelta / koomeyPeriod);
 
-            uint256 scaledDiff = ledOracle.scaleDifficulty(currDifficulty);
+            uint256 scaledDiff = _ledOracle.scaleDifficulty(currDifficulty);
 
             assertEq(scaledDiff, currDifficulty / expectedImprovement);
         }

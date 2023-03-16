@@ -3,8 +3,6 @@ pragma solidity >=0.8.17;
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "./interfaces/IPriceFeed.sol";
 
-error InvalidPrice();
-
 /**
  * @title Price Feed
  * @author LED Labs
@@ -12,8 +10,11 @@ error InvalidPrice();
  * @dev Watch out for the oracle manipulations attacks
  */
 contract PriceFeed is IPriceFeed {
-    AggregatorV3Interface internal btcUSD;
-    AggregatorV3Interface internal ethUSD;
+
+    error PriceFeed__InvalidPrice();
+
+    AggregatorV3Interface internal _btcUSD;
+    AggregatorV3Interface internal _ethUSD;
 
     /**
      * Network: Optimism
@@ -23,8 +24,8 @@ contract PriceFeed is IPriceFeed {
      * Address: 0x13e3Ee699D1909E989722E753853AE30b17e08c5
      */
     constructor(address btcOracle, address ethOracle) {
-        btcUSD = AggregatorV3Interface(btcOracle);
-        ethUSD = AggregatorV3Interface(ethOracle);
+        _btcUSD = AggregatorV3Interface(btcOracle);
+        _ethUSD = AggregatorV3Interface(ethOracle);
     }
 
     /**
@@ -38,20 +39,20 @@ contract PriceFeed is IPriceFeed {
             uint256 btcUSDStartedAt,
             uint256 btcUSDTimeStamp,
             uint80 btcUSDAnsweredInRound
-        ) = btcUSD.latestRoundData();
+        ) = _btcUSD.latestRoundData();
         (
             uint80 ethUSDRoundID,
             int256 ethUSDPrice,
             uint256 ethUSDStartedAt,
             uint256 ethUSDTimeStamp,
             uint80 ethUSDAnsweredInRound
-        ) = ethUSD.latestRoundData();
+        ) = _ethUSD.latestRoundData();
 
         // TODO: Check recency
 
         // prices have to be > 0 or < 1e58
         if (btcUSDPrice <= 0 || ethUSDPrice <= 0 || btcUSDPrice > 1e58 || ethUSDPrice > 1e58) {
-            revert InvalidPrice();
+            revert PriceFeed__InvalidPrice();
         }
 
         return (uint256)((ethUSDPrice * 10 ** 18) / btcUSDPrice);

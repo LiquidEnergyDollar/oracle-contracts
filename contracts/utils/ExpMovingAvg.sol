@@ -1,6 +1,6 @@
 pragma solidity >=0.8.17;
 
-error InvalidInput();
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title ExpMovingAvg
@@ -9,12 +9,15 @@ error InvalidInput();
  * values within an epoch. Once the epoch boundary is crossed, the intra-epoch
  * avg is added to the global exponential avg.
  */
-contract ExpMovingAvg {
-    uint256 private globalValue;
-    uint256 private currEpoch;
-    uint256 private epochSum = 0;
-    uint256 private epochCount = 0;
-    uint256 private globalSmoothingFactor;
+contract ExpMovingAvg is Ownable {
+
+    error ExpMovingAvg__InvalidInput();
+
+    uint256 private _globalValue;
+    uint256 private _currEpoch;
+    uint256 private _epochSum = 0;
+    uint256 private _epochCount = 0;
+    uint256 private _globalSmoothingFactor;
     // One day
     uint256 private constant EPOCH_PERIOD_IN_SEC = 86400;
 
@@ -26,12 +29,12 @@ contract ExpMovingAvg {
      * be 20.
      */
     constructor(uint256 seedValue, uint256 initSmoothingFactor) {
-        globalValue = seedValue;
+        _globalValue = seedValue;
         if (initSmoothingFactor == 0 || initSmoothingFactor > 1000) {
-            revert InvalidInput();
+            revert ExpMovingAvg__InvalidInput();
         }
-        globalSmoothingFactor = initSmoothingFactor;
-        currEpoch = getCurrEpoch();
+        _globalSmoothingFactor = initSmoothingFactor;
+        _currEpoch = getCurrEpoch();
     }
 
     /**
@@ -40,18 +43,18 @@ contract ExpMovingAvg {
      * @param value The new value to add.
      * @return The current exponential moving average considering all values
      */
-    function pushValueAndGetAvg(uint256 value) external returns (uint256) {
+    function pushValueAndGetAvg(uint256 value) external onlyOwner returns (uint256) {
         // Update the global value if the epoch has transitioned
         uint256 epoch = getCurrEpoch();
-        if (epoch != currEpoch) {
-            currEpoch = epoch;
-            globalValue = getGlobalAvg();
-            epochSum = 0;
-            epochCount = 0;
+        if (epoch != _currEpoch) {
+            _currEpoch = epoch;
+            _globalValue = getGlobalAvg();
+            _epochSum = 0;
+            _epochCount = 0;
         }
 
-        epochSum += value;
-        epochCount++;
+        _epochSum += value;
+        _epochCount++;
 
         return getGlobalAvg();
     }
@@ -60,10 +63,10 @@ contract ExpMovingAvg {
      * @return The current exponential moving average considering all values
      */
     function getGlobalAvg() public view returns (uint256) {
-        uint256 epochValue = epochSum / epochCount;
-        int256 delta = (int(epochValue) - int(globalValue));
-        int256 weightedDelta = delta / int(globalSmoothingFactor);
-        return uint256(weightedDelta + int(globalValue));
+        uint256 epochValue = _epochSum / _epochCount;
+        int256 delta = (int(epochValue) - int(_globalValue));
+        int256 weightedDelta = delta / int(_globalSmoothingFactor);
+        return uint256(weightedDelta + int(_globalValue));
     }
 
     /**
@@ -71,7 +74,7 @@ contract ExpMovingAvg {
      * epoch
      */
     function getHistoricAvg() external view returns (uint256) {
-        return globalValue;
+        return _globalValue;
     }
 
     function getCurrEpoch() private view returns (uint256) {

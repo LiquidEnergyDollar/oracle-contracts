@@ -6,12 +6,12 @@ import "./utils/Test.sol";
 import "../PriceFeed.sol";
 
 contract PriceFeedTest is Test {
-    PriceFeed public priceFeed;
-    address btcOracle = address(0xD702DD976Fb76Fffc2D3963D037dfDae5b04E593);
-    address ethOracle = address(0x13e3Ee699D1909E989722E753853AE30b17e08c5);
+    PriceFeed public _priceFeed;
+    address _btcOracle = address(0xD702DD976Fb76Fffc2D3963D037dfDae5b04E593);
+    address _ethOracle = address(0x13e3Ee699D1909E989722E753853AE30b17e08c5);
 
     function setUp() public {
-        priceFeed = new PriceFeed(btcOracle, ethOracle);
+        _priceFeed = new PriceFeed(_btcOracle, _ethOracle);
     }
 
     function testInvalidResponse() public {
@@ -65,18 +65,18 @@ contract PriceFeedTest is Test {
     function callGetBTCPerETHWithInput(int256 btcPrice, int256 ethPrice) private returns (uint256) {
         // BTC chainlink contract
         vm.mockCall(
-            btcOracle,
+            _btcOracle,
             abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
             abi.encode(1, btcPrice, 1, 1, 1)
         );
 
         // ETH chainlink contract
         vm.mockCall(
-            ethOracle,
+            _ethOracle,
             abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
             abi.encode(1, ethPrice, 1, 1, 1)
         );
 
-        return priceFeed.getBTCPerETH();
+        return _priceFeed.getBTCPerETH();
     }
 }
