@@ -31,12 +31,11 @@ async function main(wallet?: Wallet, gasOpts?: GasOptions): Promise<void> {
                         ),
                     `PriceFeed`,
                 );
-                void main(wallet, gasOpts);
             }
             if (askYesNo(`Deploy BTCRelay?`)) {
                 await trackDeployment(() => deployBTCRelay(wallet!, gasOpts), `BTCRelay`);
-                void main(wallet, gasOpts);
             }
+            void main(wallet, gasOpts);
             break;
         }
         case Usage.CALL: {

@@ -41,6 +41,13 @@ contract BTCRelayTest is Test {
         assertEq(btcRelay.getCurrentEpochDifficulty(), 5646403851534);
     }
 
+    function testIssuance() public {
+        setGenesis();
+
+        // 12.5 BTC in sats
+        assertEq(btcRelay.getBTCIssuancePerBlock(), 1250000000);
+    }
+
     function testRetarget() public {
         // Block headers from height 554396 to 554403
         // Epoch boundary at 554400

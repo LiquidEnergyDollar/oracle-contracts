@@ -38,3 +38,13 @@ task(`getbtcdiff`, `Gets current BTC difficulty from BTC relay`).setAction(async
     const currDiff = await btcRelay.getCurrentEpochDifficulty();
     console.log(currDiff.toString());
 });
+
+task(`getbtcissuance`, `Gets current BTC issuance from BTC relay`).setAction(async (_, hre) => {
+    const factory = await hre.ethers.getContractFactory(`BTCRelay`);
+    const btcRelayAddress = getContractAddress(`BTCRelay`);
+    const btcRelay = factory.attach(btcRelayAddress);
+
+    const currIssuance = await btcRelay.getBTCIssuancePerBlock();
+    // Print in BTC rather than sats
+    console.log(currIssuance.toNumber() / 100000000);
+});

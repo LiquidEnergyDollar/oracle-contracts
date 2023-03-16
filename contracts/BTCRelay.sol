@@ -532,4 +532,24 @@ contract BTCRelay is Ownable, ILightRelay {
 
         return (digest, target);
     }
+
+    /// @notice Get the issuance (BTC mining reward per block) for the current
+    /// epoch. Note that this will return the value at the START of the current
+    /// epoch, even if a halving event takes place within the current epoch boundaries.
+    function getBTCIssuancePerBlock() public view returns (uint256 issuance) {
+        // Initial BTC reward in sats
+        issuance = 5000000000;
+        // Height at beginning of current epoch
+        uint256 curBlock = currentEpoch * 2016;
+        // Number of blocks of the halving interval
+        uint256 halvingInterval = 210000;
+        // The number of halving events since genesis
+        uint256 numHalvings = curBlock / halvingInterval;
+
+        for (uint256 i = 0; i < numHalvings; i++) {
+            issuance = issuance / 2;
+        }
+
+        return issuance;
+    }
 }
