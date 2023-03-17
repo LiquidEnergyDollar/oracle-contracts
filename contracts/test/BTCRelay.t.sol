@@ -1,7 +1,6 @@
 pragma solidity >=0.8.17;
 
 import "./utils/Test.sol";
-import "./utils/Console.sol";
 import "../BTCRelay.sol";
 
 contract BTCRelayTest is Test {
