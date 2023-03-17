@@ -1,4 +1,4 @@
-pragma solidity >=0.8.17;
+pragma solidity ^0.8.17;
 
 import "./interfaces/IPriceFeed.sol";
 import "./interfaces/IBitcoinOracle.sol";

@@ -1,4 +1,4 @@
-pragma solidity >=0.8.17;
+pragma solidity ^0.8.17;
 
 interface IBitcoinOracle {
     /// @notice Returns the difficulty of the current epoch.
