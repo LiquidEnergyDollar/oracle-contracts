@@ -2,6 +2,7 @@ pragma solidity >=0.8.17;
 
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "./interfaces/IPriceFeed.sol";
+import "solmate/src/utils/FixedPointMathLib.sol";
 
 /**
  * @title Price Feed
@@ -10,7 +11,6 @@ import "./interfaces/IPriceFeed.sol";
  * @dev Watch out for the oracle manipulations attacks
  */
 contract PriceFeed is IPriceFeed {
-
     error PriceFeed__InvalidPrice();
 
     AggregatorV3Interface internal _btcUSD;
@@ -55,6 +55,10 @@ contract PriceFeed is IPriceFeed {
             revert PriceFeed__InvalidPrice();
         }
 
-        return (uint256)((ethUSDPrice * 10 ** 18) / btcUSDPrice);
+        // Chainlink prices are in 1e8 precision
+        // Convert them to 1e18 before division
+        uint256 ethUSD = uint256(ethUSDPrice * 1e10);
+        uint256 btcUSD = uint256(btcUSDPrice * 1e10);
+        return FixedPointMathLib.divWadDown(ethUSD, btcUSD);
     }
 }

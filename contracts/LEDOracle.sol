@@ -4,6 +4,7 @@ import "./interfaces/IPriceFeed.sol";
 import "./interfaces/IBitcoinOracle.sol";
 import "./interfaces/ILEDOracle.sol";
 import "./utils/ExpMovingAvg.sol";
+import "solmate/src/utils/FixedPointMathLib.sol";
 
 /**
  * @title LEDOracle
@@ -13,7 +14,6 @@ import "./utils/ExpMovingAvg.sol";
  * contain the equation and state necessary for creating the LED price feed.
  */
 contract LEDOracle is ILEDOracle {
-
     error LEDOracle__InvalidInput();
     error LEDOracle__InvalidExchangeRate();
     error LEDOracle__InvalidBTCDifficulty();
@@ -58,8 +58,9 @@ contract LEDOracle is ILEDOracle {
      * @return The LED/ETH ratio
      */
     function getLEDPerETH() external returns (uint256) {
-        uint256 currDifficulty = _bitcoinOracle.getCurrentEpochDifficulty();
-        uint256 btcReward = _bitcoinOracle.getBTCIssuancePerBlock();
+        uint256 currDifficulty = _bitcoinOracle.getCurrentEpochDifficulty() * 1e18;
+        // Satoshi's have 8 points of precision
+        uint256 btcReward = _bitcoinOracle.getBTCIssuancePerBlock() * 1e10;
         uint256 btcPerETH = _priceFeedOracle.getBTCPerETH();
 
         if (btcPerETH <= 0) {
@@ -68,8 +69,8 @@ contract LEDOracle is ILEDOracle {
 
         uint256 scaledDiff = this.scaleDifficulty(currDifficulty);
 
-        uint256 kLED = btcReward / scaledDiff;
-        uint256 scaledLED = kLED / _scaleFactor;
+        uint256 kLED = FixedPointMathLib.divWadDown(btcReward, scaledDiff);
+        uint256 scaledLED = kLED * _scaleFactor;
         uint256 smoothedLED = _expMovingAvg.pushValueAndGetAvg(scaledLED);
 
         emit LEDPerETH(block.timestamp, kLED, scaledLED, smoothedLED);
@@ -83,7 +84,7 @@ contract LEDOracle is ILEDOracle {
      * @return The scaled difficulty based on Koomey's law
      */
     function scaleDifficulty(uint256 currDifficulty) external view returns (uint256) {
-        if (currDifficulty == 0) {
+        if (currDifficulty < 1e18) {
             revert LEDOracle__InvalidBTCDifficulty();
         }
         uint timeDelta = block.timestamp - KOOMEY_START_DATE;

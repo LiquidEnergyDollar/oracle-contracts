@@ -7,7 +7,6 @@ import "../utils/ExpMovingAvg.sol";
 import "forge-std/src/console2.sol";
 
 contract TestAccessControl {
-
     function tryToPushValueAndGetAvg(ExpMovingAvg expMovingAvg) public {
         expMovingAvg.pushValueAndGetAvg(1e18);
     }
@@ -22,15 +21,16 @@ contract EMATest is Test {
     uint256 private constant EXAMPLE_SMOOTHING_FACTOR = 20;
 
     function testConstructorSuccess() public {
-        _expMovingAvg = new ExpMovingAvg(1e18, 20);
+        _expMovingAvg = new ExpMovingAvg(1e18, 20e18);
     }
 
     function testConstructorFailures() public {
         vm.expectRevert();
-        _expMovingAvg = new ExpMovingAvg(1e18, 1001);
+        _expMovingAvg = new ExpMovingAvg(1e18, 1001e18);
         vm.expectRevert();
         _expMovingAvg = new ExpMovingAvg(1e18, 0);
     }
+
     function testAccessControl() public {
         // Owner should be this EMATest contract
         _expMovingAvg = new ExpMovingAvg(1e18, 20);

@@ -1,6 +1,7 @@
 pragma solidity >=0.8.17;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "solmate/src/utils/FixedPointMathLib.sol";
 
 /**
  * @title ExpMovingAvg
@@ -10,7 +11,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  * avg is added to the global exponential avg.
  */
 contract ExpMovingAvg is Ownable {
-
     error ExpMovingAvg__InvalidInput();
 
     uint256 private _globalValue;
@@ -26,11 +26,11 @@ contract ExpMovingAvg is Ownable {
      * @param seedValue The value to represent the historic moving avg
      * @param initSmoothingFactor 1/(traditional smoothing fraction)
      * Ex. if the traditional EMA smoothing factor is .05, this input should
-     * be 20.
+     * be 20e18.
      */
     constructor(uint256 seedValue, uint256 initSmoothingFactor) {
         _globalValue = seedValue;
-        if (initSmoothingFactor == 0 || initSmoothingFactor > 1000) {
+        if (initSmoothingFactor == 0 || initSmoothingFactor > 1000e18) {
             revert ExpMovingAvg__InvalidInput();
         }
         _globalSmoothingFactor = initSmoothingFactor;
@@ -54,7 +54,7 @@ contract ExpMovingAvg is Ownable {
         }
 
         _epochSum += value;
-        _epochCount++;
+        _epochCount += 1e18; // _epochCount++
 
         return getGlobalAvg();
     }
@@ -63,7 +63,7 @@ contract ExpMovingAvg is Ownable {
      * @return The current exponential moving average considering all values
      */
     function getGlobalAvg() public view returns (uint256) {
-        uint256 epochValue = _epochSum / _epochCount;
+        uint256 epochValue = FixedPointMathLib.divWadDown(_epochSum, _epochCount);
         int256 delta = (int(epochValue) - int(_globalValue));
         int256 weightedDelta = delta / int(_globalSmoothingFactor);
         return uint256(weightedDelta + int(_globalValue));
@@ -78,6 +78,7 @@ contract ExpMovingAvg is Ownable {
     }
 
     function getCurrEpoch() private view returns (uint256) {
-        return block.timestamp / EPOCH_PERIOD_IN_SEC;
+        uint256 timestamp = block.timestamp;
+        return timestamp / EPOCH_PERIOD_IN_SEC;
     }
 }

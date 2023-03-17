@@ -76,6 +76,7 @@
         "readline-sync": "^1.4.10",
         "solhint-plugin-prettier": "^0.0.5",
         "solidity-coverage": "^0.8.2",
+        "solmate": "^6.7.0",
         "toml": "^3.0.0",
         "ts-node": "^10.9.1",
         "typechain": "^8.1.1",
