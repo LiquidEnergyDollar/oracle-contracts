@@ -5,6 +5,7 @@ import "./interfaces/IBitcoinOracle.sol";
 import "./interfaces/ILEDOracle.sol";
 import "./utils/ExpMovingAvg.sol";
 import "solmate/src/utils/FixedPointMathLib.sol";
+import "abdk-libraries-solidity/ABDKMath64x64.sol";
 import "forge-std/src/console2.sol";
 
 /**
@@ -70,6 +71,7 @@ contract LEDOracle is ILEDOracle {
         }
 
         uint256 scaledDiff = this.scaleDifficulty(currDifficulty);
+        console2.log("scaledDiff", scaledDiff);
 
         uint256 kLED = FixedPointMathLib.divWadDown(btcReward, scaledDiff);
         console2.log("kLED", kLED);
@@ -93,9 +95,18 @@ contract LEDOracle is ILEDOracle {
         if (currDifficulty < 1e18) {
             revert LEDOracle__InvalidBTCDifficulty();
         }
+        console2.log("block.timestamp", block.timestamp);
         uint timeDelta = block.timestamp - KOOMEY_START_DATE;
-        uint256 koomeyPeriods = timeDelta / _koomeyTimeInSeconds;
-        uint expectedImprovement = 2 ** (1 + koomeyPeriods);
-        return currDifficulty / expectedImprovement;
+        console2.log("timeDelta", timeDelta);
+        // We need to convert everything to 64.64 notation so that we can do 
+        // 2^x where x is not a whole number
+        int128 koomeyPeriods = ABDKMath64x64.divu(timeDelta, _koomeyTimeInSeconds);
+        console2.log("koomeyPeriods", koomeyPeriods);
+        int128 koomeyPeriodsPlusOne = ABDKMath64x64.add(ABDKMath64x64.fromUInt(1), koomeyPeriods);
+        int128 expectedImprovement64 = ABDKMath64x64.exp_2(koomeyPeriodsPlusOne);
+        console2.log("expectedImprovement", expectedImprovement64);
+        int128 expectedImprovementInv = ABDKMath64x64.inv(expectedImprovement64);
+        console2.log("expectedImprovementInv", expectedImprovementInv);
+        return ABDKMath64x64.mulu(expectedImprovementInv, currDifficulty);
     }
 }
