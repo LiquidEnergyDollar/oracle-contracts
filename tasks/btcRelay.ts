@@ -23,7 +23,7 @@ task(`retarget`, `Sets next epoch difficulty for BTC relay`).setAction(async (_,
     const btcRelay = factory.attach(btcRelayAddress);
 
     const relayRange = await btcRelay.getRelayRange();
-    const retargetHeight = relayRange.currentEpochEnd.toNumber() + 1;
+    const retargetHeight = Number(relayRange.currentEpochEnd.toNumber()) + 1;
     const proofLength = (await btcRelay.proofLength()).toNumber();
 
     const retargetHeaders = await getBtcHeaders(retargetHeight, proofLength);
