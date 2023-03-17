@@ -39,7 +39,7 @@ contract PriceFeed is IPriceFeed {
         // TODO: Check recency
 
         // prices have to be > 0
-        if (btcUSDPrice > 0 || ethUSDPrice > 0) {
+        if (btcUSDPrice <= 0 || ethUSDPrice <= 0) {
             revert PriceFeed__InvalidPrice();
         }
 
