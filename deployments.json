@@ -6,6 +6,10 @@
                 {
                     "name": "PriceFeed",
                     "address": "0x9fdEb7D1AaCd16ecD2e5B7a1e8DBEee8D48130D6"
+                },
+                {
+                    "name": "BTCRelay",
+                    "address": "0x720ce8531f0fd79A61fdCB80215C1C761Fe94F23"
                 }
             ]
         }
