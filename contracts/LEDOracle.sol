@@ -28,7 +28,7 @@ contract LEDOracle is ILEDOracle {
     uint256 private constant KOOMEY_START_DATE = 1451635200;
     uint256 private constant SECONDS_PER_THIRTY_DAYS = 2592000;
 
-    event LEDPerETH(uint timestamp, uint256 raw, uint256 scaled, uint256 smoothed);
+    event LEDPerETH(uint256 timestamp, uint256 raw, uint256 scaled, uint256 smoothed);
 
     constructor(
         address priceFeedOracleAddress,
@@ -63,7 +63,7 @@ contract LEDOracle is ILEDOracle {
         uint256 btcReward = _bitcoinOracle.getBTCIssuancePerBlock() * 1e10;
         uint256 btcPerETH = _priceFeedOracle.getBTCPerETH();
 
-        if (btcPerETH <= 0) {
+        if (btcPerETH == 0) {
             revert LEDOracle__InvalidExchangeRate();
         }
 
@@ -87,10 +87,10 @@ contract LEDOracle is ILEDOracle {
         if (currDifficulty < 1e18) {
             revert LEDOracle__InvalidBTCDifficulty();
         }
-        uint timeDelta = block.timestamp - KOOMEY_START_DATE;
+        uint256 timeDelta = block.timestamp - KOOMEY_START_DATE;
         uint256 koomeyPeriodInSecs = _koomeyTimeInMonths * SECONDS_PER_THIRTY_DAYS;
         uint256 koomeyPeriods = timeDelta / koomeyPeriodInSecs;
-        uint expectedImprovement = 2 ** (1 + koomeyPeriods);
+        uint256 expectedImprovement = 2 ** (1 + koomeyPeriods);
         return currDifficulty / expectedImprovement;
     }
 }
