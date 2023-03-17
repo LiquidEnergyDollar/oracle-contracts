@@ -84,6 +84,8 @@
         "zksync-web3": "^0.11.1"
     },
     "dependencies": {
-        "@keep-network/bitcoin-spv-sol": "^3.4.0-solc-0.8"
+        "@keep-network/bitcoin-spv-sol": "^3.4.0-solc-0.8",
+        "@openzeppelin/contracts": "^4.8.2",
+        "typed-rest-client": "^1.8.9"
     }
 }

@@ -1,9 +1,11 @@
 import { expect } from "chai";
 import { BaseContract, ContractReceipt, ContractTransaction, utils } from "ethers";
 import { Interface } from "ethers/lib/utils";
+import * as rm from "typed-rest-client";
 
 import { TransactionReceipt } from "@ethersproject/providers";
 import { GAS_MODE } from "../hardhat.config";
+import * as deploymentsJson from "../deployments.json";
 
 // --- Transaction & contract deployment helpers ---
 
@@ -85,3 +87,57 @@ export function parseEvent(
     }
     return res;
 }
+
+interface BTCResult {
+    // Need to use "any" here since return values are keyed off block height
+    // (which we don't know ahead of time)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: any;
+}
+
+export const getBtcHeaders = async (height: number, proofLength?: number): Promise<string> => {
+    const urlString = `/bitcoin/raw/block/`;
+    const host = `https://api.blockchair.com`;
+    const rest = new rm.RestClient(`btc-relay`, host);
+
+    // Proof length can be optional when we just want one block
+    // E.g. when setting genesis
+    let lower: number;
+    let upper: number;
+    if (proofLength) {
+        lower = height - proofLength;
+        upper = height + proofLength;
+    } else {
+        lower = height;
+        upper = height + 1;
+    }
+
+    let header = `0x`;
+    try {
+        for (let i = lower; i < upper; i++) {
+            console.log(`Retrieving header for block ${i}`);
+            const res = await rest.get<BTCResult>(urlString + i.toString());
+            header = header.concat(res.result?.data[i].raw_block.slice(0, 160));
+        }
+        return header;
+    } catch (err) {
+        console.log(`Error encountered while attempting to retrieve block headers`);
+        throw err;
+    }
+};
+
+export const getContractAddress = (contractName: string): string => {
+    for (const deployment of deploymentsJson.deployments) {
+        // Default to optimism deployments
+        if (deployment.network == `optimism`) {
+            for (const contract of deployment.contracts) {
+                if (contract.name == contractName) {
+                    return contract.address;
+                }
+            }
+        }
+    }
+
+    // If we haven't found a deployment address, throw an error
+    throw new Error(`address for contract ${contractName} not found`);
+};

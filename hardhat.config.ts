@@ -19,6 +19,8 @@ import { NetworkUserConfig } from "hardhat/types";
 import { resolve } from "path";
 import * as toml from "toml";
 
+import "./tasks/btcRelay";
+
 dotenv.config({ path: resolve(__dirname, `./.env`) });
 
 // Enable increased console log verbosity
