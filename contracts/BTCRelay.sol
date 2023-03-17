@@ -6,7 +6,7 @@ import {BytesLib} from "@keep-network/bitcoin-spv-sol/contracts/BytesLib.sol";
 import {BTCUtils} from "@keep-network/bitcoin-spv-sol/contracts/BTCUtils.sol";
 import {ValidateSPV} from "@keep-network/bitcoin-spv-sol/contracts/ValidateSPV.sol";
 
-import "./interfaces/IRelay.sol";
+import "./interfaces/IBitcoinOracle.sol";
 
 struct Epoch {
     uint32 timestamp;
@@ -15,7 +15,7 @@ struct Epoch {
     uint224 target;
 }
 
-interface ILightRelay is IRelay {
+interface ILightRelay is IBitcoinOracle {
     event Genesis(uint256 blockHeight);
     event Retarget(uint256 oldDifficulty, uint256 newDifficulty);
     event ProofLengthChanged(uint256 newLength);
