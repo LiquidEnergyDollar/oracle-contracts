@@ -4,6 +4,7 @@ import "./utils/Test.sol";
 import "./utils/Common.sol";
 import "../LEDOracle.sol";
 import "../utils/ExpMovingAvg.sol";
+import "../utils/IntFixedPointMathLib.sol";
 import "forge-std/src/console2.sol";
 
 contract TestAccessControl {
@@ -18,10 +19,10 @@ contract EMATest is Test {
     // One day
     uint256 private constant EPOCH_PERIOD_IN_SEC = 86400;
     uint256 private constant KOOMEY_START_DATE = 1451635200;
-    uint256 private constant EXAMPLE_SMOOTHING_FACTOR = 20;
+    uint256 private constant EXAMPLE_SMOOTHING_FACTOR = 20e18;
 
     function testConstructorSuccess() public {
-        _expMovingAvg = new ExpMovingAvg(1e18, 20e18);
+        _expMovingAvg = new ExpMovingAvg(1e18, EXAMPLE_SMOOTHING_FACTOR);
     }
 
     function testConstructorFailures() public {
@@ -33,11 +34,25 @@ contract EMATest is Test {
 
     function testAccessControl() public {
         // Owner should be this EMATest contract
-        _expMovingAvg = new ExpMovingAvg(1e18, 20);
+        _expMovingAvg = new ExpMovingAvg(1e18, EXAMPLE_SMOOTHING_FACTOR);
         TestAccessControl ac = new TestAccessControl();
         // Calling pushValueAndGetAvg from another contract should fail
         vm.expectRevert();
         ac.tryToPushValueAndGetAvg(_expMovingAvg);
+    }
+
+    function testSimpleAvg() public {
+        _expMovingAvg = new ExpMovingAvg(2870150562289237, EXAMPLE_SMOOTHING_FACTOR);
+        uint currAvg = _expMovingAvg.pushValueAndGetAvg(2870150562289237);
+        assertEq(currAvg, 2870150562289237);
+
+        _expMovingAvg = new ExpMovingAvg(1e18, EXAMPLE_SMOOTHING_FACTOR);
+        currAvg = _expMovingAvg.pushValueAndGetAvg(2870150562289237);
+        assertEq(currAvg, 950143507528114462);
+
+        _expMovingAvg = new ExpMovingAvg(1e18, EXAMPLE_SMOOTHING_FACTOR);
+        currAvg = _expMovingAvg.pushValueAndGetAvg(2e18);
+        assertEq(currAvg, 1.05e18);
     }
 
     function testIntraEpochAvg(uint256 seedValue, uint256 addValue) public {
@@ -57,7 +72,7 @@ contract EMATest is Test {
         vm.assume(addValue < 1e59 && seedValue < 1e59);
 
         // smoothingFactor > 0 and <= 1000
-        uint smoothingFactor = common.convertToRange(smoothingFactorSeed, 0, 1000);
+        uint smoothingFactor = Common.convertToRange(smoothingFactorSeed, 0, 1000e18);
 
         _expMovingAvg = new ExpMovingAvg(seedValue, smoothingFactor);
         _values = [1e18, 2e18, 3e18, addValue];
@@ -121,7 +136,7 @@ contract EMATest is Test {
             uint currAvg = _expMovingAvg.pushValueAndGetAvg(_valuesToAdd[i]);
 
             int delta = int(sum / (i + 1)) - int(seedValue);
-            int weightedDelta = delta / int(smoothingFactor);
+            int weightedDelta = IntFixedPointMathLib.divWadDown(delta, int(smoothingFactor));
             uint expected = uint(weightedDelta + int(seedValue));
             assertEq(currAvg, expected);
         }
