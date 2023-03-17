@@ -58,13 +58,13 @@ contract LEDOracleTest is Test {
     function testKoomeysLaw(
         uint currDifficulty,
         uint currTimestampSeed,
-        uint koomeyMonthsSeed
+        uint koomeyPeriodSeed
     ) public {
         vm.assume(currDifficulty > 1e18 && currDifficulty < 1e50);
         // timestamp > 2016 and <= 2116
         uint currTimestamp = Common.convertToRange(currTimestampSeed, KOOMEY_START_DATE, MAX_DATE);
-        // Koomey months > 4 and <= 100
-        uint koomeyMonths = Common.convertToRange(koomeyMonthsSeed, 10368000, 259200000);
+        // Koomey months > 4 months and <= 100 months
+        uint koomeyPeriod = Common.convertToRange(koomeyPeriodSeed, 12375190, 259200000);
         vm.warp(currTimestamp);
 
         _ledOracle = new LEDOracle(
@@ -73,15 +73,15 @@ contract LEDOracleTest is Test {
             1e18,
             EXAMPLE_SMOOTHING_FACTOR,
             1e18,
-            koomeyMonths
+            koomeyPeriod
         );
 
         uint timeDelta = currTimestamp - KOOMEY_START_DATE;
-        uint expectedImprovement = 2 ** (1 + timeDelta / EXAMPLE_KOOMEY_PERIOD);
-
+        uint expectedImprovement = 2 ** (1 + timeDelta / koomeyPeriod);
+        uint expectedScaledDiff = currDifficulty / expectedImprovement;
         uint256 scaledDiff = _ledOracle.scaleDifficulty(currDifficulty);
 
-        assertEq(scaledDiff, currDifficulty / expectedImprovement);
+        assertEq(scaledDiff, expectedScaledDiff);
     }
 
     function testGetLEDPerETH() public {
