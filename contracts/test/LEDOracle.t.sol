@@ -1,4 +1,4 @@
-pragma solidity >=0.8.17;
+pragma solidity ^0.8.17;
 
 import "./utils/Test.sol";
 import "./utils/Common.sol";
@@ -77,7 +77,6 @@ contract LEDOracleTest is Test {
             koomeyPeriod
         );
 
-        
         uint timeDelta = currTimestamp - KOOMEY_START_DATE;
         int128 koomeyPeriods = ABDKMath64x64.divu(timeDelta, koomeyPeriod);
         int128 koomeyPeriodsPlusOne = ABDKMath64x64.add(ABDKMath64x64.fromUInt(1), koomeyPeriods);
