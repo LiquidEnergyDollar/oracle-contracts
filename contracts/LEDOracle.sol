@@ -67,7 +67,7 @@ contract LEDOracle is ILEDOracle {
             revert LEDOracle__InvalidExchangeRate();
         }
 
-        uint256 scaledDiff = this.scaleDifficulty(currDifficulty);
+        uint256 scaledDiff = scaleDifficulty(currDifficulty);
 
         uint256 kLED = FixedPointMathLib.divWadDown(btcReward, scaledDiff);
         uint256 scaledLED = kLED * _scaleFactor;
@@ -83,7 +83,7 @@ contract LEDOracle is ILEDOracle {
      * Energy efficiency doubles in KOOMEY_DOUBLE_TIME_IN_MONTHS
      * @return The scaled difficulty based on Koomey's law
      */
-    function scaleDifficulty(uint256 currDifficulty) external view returns (uint256) {
+    function scaleDifficulty(uint256 currDifficulty) public view returns (uint256) {
         if (currDifficulty < 1e18) {
             revert LEDOracle__InvalidBTCDifficulty();
         }
