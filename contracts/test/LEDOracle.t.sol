@@ -118,7 +118,7 @@ contract LEDOracleTest is Test {
             _bitcoinOracle,
             avgSeed,
             smoothingFactor,
-            1e18,
+            8855451406018746916625,
             EXAMPLE_KOOMEY_PERIOD
         );
         console2.log("LED Per ETH", _ledOracle.getLEDPerETH());
