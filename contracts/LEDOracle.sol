@@ -33,10 +33,9 @@ contract LEDOracle is ILEDOracle {
     constructor(
         address priceFeedOracleAddress,
         address bitcoinOracleAddress,
-        uint256 seedValue,
-        uint256 smoothingFactor,
         uint256 initScaleFactor,
-        uint256 initKoomeyTimeInMonths
+        uint256 initKoomeyTimeInMonths,
+        ExpMovingAvg expMovingAvg
     ) {
         if (
             block.timestamp <= KOOMEY_START_DATE ||
@@ -47,7 +46,7 @@ contract LEDOracle is ILEDOracle {
         }
         _priceFeedOracle = IPriceFeed(priceFeedOracleAddress);
         _bitcoinOracle = IBitcoinOracle(bitcoinOracleAddress);
-        _expMovingAvg = new ExpMovingAvg(seedValue, smoothingFactor);
+        _expMovingAvg = expMovingAvg;
         _scaleFactor = initScaleFactor;
         _koomeyTimeInMonths = initKoomeyTimeInMonths;
     }
