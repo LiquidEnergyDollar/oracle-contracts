@@ -102,7 +102,7 @@ contract LEDOracleTest is Test {
         vm.mockCall(
             _bitcoinOracle,
             abi.encodeWithSelector(IBitcoinOracle.getBTCIssuancePerBlock.selector),
-            abi.encode(6.25e18)
+            abi.encode(6.25e8)
         );
 
         // Mock PriceFeed response
@@ -117,7 +117,7 @@ contract LEDOracleTest is Test {
             _bitcoinOracle,
             avgSeed,
             smoothingFactor,
-            8855451406018746916625,
+            291367606668529420000000000,
             EXAMPLE_KOOMEY_PERIOD
         );
         console2.log("LED Per ETH", _ledOracle.getLEDPerETH());

@@ -1,8 +1,6 @@
-// Fill out these values prior to deploying LEDOracle
-// These values should be strings so we can parse to BigNumbers
 {
-    "seedValue": "0",
-    "smoothingFactor": "0",
-    "initScaleFactor": "0",
-    "initKoomeyTimeInSeconds": "0"
+    "seedValue": "438376679200",
+    "smoothingFactor": "12658227848101265822",
+    "initScaleFactor": "291367606668529420000000000",
+    "initKoomeyTimeInSeconds": "38880000"
 }

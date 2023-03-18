@@ -6,6 +6,8 @@ task(`getledpereth`, `Gets current LED per ETH and emits event`).setAction(async
     const ledOracleAddress = getContractAddress(`LEDOracle`);
     const ledOracle = factory.attach(ledOracleAddress);
 
-    const currPrice = await ledOracle.getlEDPerEth();
-    console.log(currPrice.toString());
+    const tx = await ledOracle.getLEDPerETH();
+    const rc = await tx.wait();
+    const event = rc.events?.find(event => event.event === 'LEDPerETHUpdated');
+    console.log(JSON.stringify(event));
 });
