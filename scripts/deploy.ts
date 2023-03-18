@@ -1,7 +1,7 @@
 import hre from "hardhat";
 
 import { chainIds, VERBOSE, ZK_EVM } from "../hardhat.config";
-import { BTCRelay, BTCRelay__factory, PriceFeed, PriceFeed__factory } from "../types";
+import { BTCRelay, BTCRelay__factory, LEDOracle, LEDOracle__factory, PriceFeed, PriceFeed__factory } from "../types";
 import { deployWait } from "./utils";
 import { GasOptions } from "./types";
 import { Wallet } from "ethers";
@@ -79,6 +79,62 @@ export async function deployPriceFeed(
     hre.tracer.nameTags[priceFeedContract.address] = `PriceFeed`;
 
     return priceFeedContract;
+}
+
+// deployLEDOracle deploys the PriceFeed contract.
+export async function deployLEDOracle(
+    priceFeedOracle: string,
+    bitcoinOracle: string,
+    seedValue: string,
+    smoothingFactor: string,
+    initScaleFactor: string,
+    initKoomeyTimeInSeconds: string,
+    wallet: Wallet,
+    gasOpts?: GasOptions,
+): Promise<LEDOracle> {
+    let ledOracleContract: LEDOracle;
+    if (await isZkDeployment(wallet)) {
+        const deployer = zkDeployer.fromEthWallet(hre, wallet);
+        const zkArtifact = await deployer.loadArtifact(`PriceFeed`);
+        ledOracleContract = (await deployWait(
+            deployer.deploy(zkArtifact, [
+                priceFeedOracle,
+                bitcoinOracle,
+                seedValue,
+                smoothingFactor,
+                initScaleFactor,
+                initKoomeyTimeInSeconds
+            ], {
+                maxFeePerGas: gasOpts?.maxFeePerGas,
+                maxPriorityFeePerGas: gasOpts?.maxPriorityFeePerGas,
+                gasLimit: gasOpts?.gasLimit,
+            }),
+        )) as LEDOracle;
+    } else {
+        const ledOracle: LEDOracle__factory = await hre.ethers.getContractFactory(
+            `LEDOracle`,
+            wallet,
+        );
+        ledOracleContract = await deployWait(
+            ledOracle.deploy(
+                priceFeedOracle,
+                bitcoinOracle,
+                seedValue,
+                smoothingFactor,
+                initScaleFactor,
+                initKoomeyTimeInSeconds,
+                {
+                    //maxFeePerGas: gasOpts?.maxFeePerGas,
+                    //maxPriorityFeePerGas: gasOpts?.maxPriorityFeePerGas,
+                    gasLimit: gasOpts?.gasLimit,
+                }),
+        );
+    }
+
+    if (VERBOSE) console.log(`LEDOracle: ${ledOracleContract.address}`);
+    hre.tracer.nameTags[ledOracleContract.address] = `LEDOracle`;
+
+    return ledOracleContract;
 }
 
 // isZkDeployment returns if ZK_EVM is true and the network is a supported zk rollup.

@@ -4,11 +4,13 @@ import { ethers, network } from "hardhat";
 import * as path from "path";
 import { keyInSelect, keyInYNStrict, question } from "readline-sync";
 import { PriceFeed } from "../types";
-import { deployBTCRelay, deployPriceFeed } from "./deploy";
+import { deployBTCRelay, deployLEDOracle, deployPriceFeed } from "./deploy";
 import { chainIds, explorerUrl, GAS_MODE, UrlType } from "../hardhat.config";
 import { Deployment, DeploymentContract, Deployments, GasOptions } from "./types";
 import { FeeData } from "@ethersproject/providers";
 import { HardhatNetworkHDAccountsConfig } from "hardhat/types";
+import { getContractAddress } from "./utils";
+import * as ledProperties from "../LEDProperties.json";
 
 async function main(wallet?: Wallet, gasOpts?: GasOptions): Promise<void> {
     if (wallet === undefined) {
@@ -34,6 +36,22 @@ async function main(wallet?: Wallet, gasOpts?: GasOptions): Promise<void> {
             }
             if (askYesNo(`Deploy BTCRelay?`)) {
                 await trackDeployment(() => deployBTCRelay(wallet!, gasOpts), `BTCRelay`);
+            }
+            if (askYesNo(`Deploy LEDOracle?`)) {
+                await trackDeployment(
+                    () =>
+                        deployLEDOracle(
+                            getContractAddress('PriceFeed'),
+                            getContractAddress('BTCRelay'),
+                            ledProperties.seedValue,
+                            ledProperties.smoothingFactor,
+                            ledProperties.initScaleFactor,
+                            ledProperties.initKoomeyTimeInSeconds,
+                            wallet!,
+                            gasOpts,
+                        ),
+                    `LEDOracle`,
+                );
             }
             void main(wallet, gasOpts);
             break;
@@ -85,7 +103,7 @@ async function askForGasOptions(): Promise<GasOptions | undefined> {
 function askForMaxFeePerGas(feeData: FeeData): BigNumber | undefined {
     const defaultMaxFee = feeData.maxFeePerGas === null ? BigNumber.from(0) : feeData.maxFeePerGas;
     const defaultMaxFeeStr = (defaultMaxFee.toNumber() / GIGA).toString();
-    for (;;) {
+    for (; ;) {
         const gasFeeStr = askFor(`maxFeePerGas in GWei`, defaultMaxFeeStr);
         const gasFee = parseFloat(gasFeeStr);
         if (Number.isFinite(gasFee) && gasFee >= 0) {
@@ -101,7 +119,7 @@ function askForMaxPriorityFeePerGas(feeData: FeeData): BigNumber | undefined {
     const defaultPriorityFee =
         feeData.maxPriorityFeePerGas === null ? BigNumber.from(0) : feeData.maxPriorityFeePerGas;
     const defaultPriorityFeeStr = (defaultPriorityFee.toNumber() / GIGA).toString();
-    for (;;) {
+    for (; ;) {
         const priorityFeeStr = askFor(`maxPriorityFeePerGas in GWei`, defaultPriorityFeeStr);
         const priorityFee = parseFloat(priorityFeeStr);
         if (Number.isFinite(priorityFee) && priorityFee >= 0) {
@@ -152,7 +170,7 @@ async function trackDeployment<T extends Contract>(
     fn: () => Promise<T>,
     name: string = `Contract`,
 ): Promise<T> {
-    for (;;) {
+    for (; ;) {
         try {
             console.log(`Deploying ${name} ...`);
 
@@ -283,7 +301,7 @@ function askYesNo(query: string): boolean {
 }
 
 function askForNumber(numberUsage: string, defaultInput?: string): number {
-    for (;;) {
+    for (; ;) {
         const numStr = askFor(numberUsage, defaultInput);
         const num = parseInt(numStr);
         if (Number.isInteger(num)) {
@@ -294,7 +312,7 @@ function askForNumber(numberUsage: string, defaultInput?: string): number {
 }
 
 function askForAddress(addressUsage: string, defaultInput?: string): string {
-    for (;;) {
+    for (; ;) {
         const address = askFor(`the address ` + addressUsage, defaultInput);
         if (utils.isAddress(address)) {
             return address;
