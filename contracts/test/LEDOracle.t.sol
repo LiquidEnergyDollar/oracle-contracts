@@ -122,38 +122,4 @@ contract LEDOracleTest is Test {
         );
         console2.log("LED Per ETH", _ledOracle.getLEDPerETH());
     }
-
-    function testGetLEDPerETH() public {
-        uint256 avgSeed = 438376679200;
-        uint256 smoothingFactor = 12658227848101265822;
-        // Mock Bitcoin Oracle
-        vm.mockCall(
-            _bitcoinOracle,
-            abi.encodeWithSelector(IBitcoinOracle.getCurrentEpochDifficulty.selector),
-            abi.encode(43551722213590)
-        );
-        vm.mockCall(
-            _bitcoinOracle,
-            abi.encodeWithSelector(IBitcoinOracle.getBTCIssuancePerBlock.selector),
-            abi.encode(6.25e18)
-        );
-
-        // Mock PriceFeed response
-        vm.mockCall(
-            _priceFeedOracle,
-            abi.encodeWithSelector(IPriceFeed.getBTCPerETH.selector),
-            abi.encode(.1109e18)
-        );
-
-        vm.warp(KOOMEY_START_DATE + 1);
-        _ledOracle = new LEDOracle(
-            _priceFeedOracle,
-            _bitcoinOracle,
-            avgSeed,
-            smoothingFactor,
-            1e18,
-            EXAMPLE_KOOMEY_PERIOD
-        );
-        console2.log("LED Per ETH", _ledOracle.getLEDPerETH());
-    }
 }
