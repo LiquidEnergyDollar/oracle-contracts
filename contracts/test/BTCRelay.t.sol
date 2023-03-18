@@ -1,7 +1,6 @@
 pragma solidity >=0.8.17;
 
 import "./utils/Test.sol";
-import "./utils/Console.sol";
 import "../BTCRelay.sol";
 
 contract BTCRelayTest is Test {
@@ -39,6 +38,13 @@ contract BTCRelayTest is Test {
         // Difficulty for genesis blockheight from
         // https://www.blockchain.com/explorer/blocks/btc/552384
         assertEq(btcRelay.getCurrentEpochDifficulty(), 5646403851534);
+    }
+
+    function testIssuance() public {
+        setGenesis();
+
+        // 12.5 BTC in sats
+        assertEq(btcRelay.getBTCIssuancePerBlock(), 1250000000);
     }
 
     function testRetarget() public {

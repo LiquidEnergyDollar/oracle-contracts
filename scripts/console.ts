@@ -4,7 +4,7 @@ import { ethers, network } from "hardhat";
 import * as path from "path";
 import { keyInSelect, keyInYNStrict, question } from "readline-sync";
 import { PriceFeed } from "../types";
-import { deployPriceFeed } from "./deploy";
+import { deployBTCRelay, deployPriceFeed } from "./deploy";
 import { chainIds, explorerUrl, GAS_MODE, UrlType } from "../hardhat.config";
 import { Deployment, DeploymentContract, Deployments, GasOptions } from "./types";
 import { FeeData } from "@ethersproject/providers";
@@ -20,16 +20,21 @@ async function main(wallet?: Wallet, gasOpts?: GasOptions): Promise<void> {
 
     switch (askForUsage()) {
         case Usage.DEPLOY: {
-            await trackDeployment(
-                () =>
-                    deployPriceFeed(
-                        `0xD702DD976Fb76Fffc2D3963D037dfDae5b04E593`,
-                        `0x13e3Ee699D1909E989722E753853AE30b17e08c5`,
-                        wallet!,
-                        gasOpts,
-                    ),
-                `PriceFeed`,
-            );
+            if (askYesNo(`Deploy PriceFeed?`)) {
+                await trackDeployment(
+                    () =>
+                        deployPriceFeed(
+                            `0xD702DD976Fb76Fffc2D3963D037dfDae5b04E593`,
+                            `0x13e3Ee699D1909E989722E753853AE30b17e08c5`,
+                            wallet!,
+                            gasOpts,
+                        ),
+                    `PriceFeed`,
+                );
+            }
+            if (askYesNo(`Deploy BTCRelay?`)) {
+                await trackDeployment(() => deployBTCRelay(wallet!, gasOpts), `BTCRelay`);
+            }
             void main(wallet, gasOpts);
             break;
         }
