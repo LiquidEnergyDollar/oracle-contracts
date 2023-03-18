@@ -8,6 +8,6 @@ task(`getledpereth`, `Gets current LED per ETH and emits event`).setAction(async
 
     const tx = await ledOracle.getLEDPerETH();
     const rc = await tx.wait();
-    const event = rc.events?.find(event => event.event === 'LEDPerETHUpdated');
+    const event = rc.events?.find(event => event.event === `LEDPerETHUpdated`);
     console.log(JSON.stringify(event));
 });

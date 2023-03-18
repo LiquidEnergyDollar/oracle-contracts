@@ -41,8 +41,8 @@ async function main(wallet?: Wallet, gasOpts?: GasOptions): Promise<void> {
                 await trackDeployment(
                     () =>
                         deployLEDOracle(
-                            getContractAddress('PriceFeed'),
-                            getContractAddress('BTCRelay'),
+                            getContractAddress(`PriceFeed`),
+                            getContractAddress(`BTCRelay`),
                             ledProperties.seedValue,
                             ledProperties.smoothingFactor,
                             ledProperties.initScaleFactor,
@@ -103,7 +103,7 @@ async function askForGasOptions(): Promise<GasOptions | undefined> {
 function askForMaxFeePerGas(feeData: FeeData): BigNumber | undefined {
     const defaultMaxFee = feeData.maxFeePerGas === null ? BigNumber.from(0) : feeData.maxFeePerGas;
     const defaultMaxFeeStr = (defaultMaxFee.toNumber() / GIGA).toString();
-    for (; ;) {
+    for (;;) {
         const gasFeeStr = askFor(`maxFeePerGas in GWei`, defaultMaxFeeStr);
         const gasFee = parseFloat(gasFeeStr);
         if (Number.isFinite(gasFee) && gasFee >= 0) {
@@ -119,7 +119,7 @@ function askForMaxPriorityFeePerGas(feeData: FeeData): BigNumber | undefined {
     const defaultPriorityFee =
         feeData.maxPriorityFeePerGas === null ? BigNumber.from(0) : feeData.maxPriorityFeePerGas;
     const defaultPriorityFeeStr = (defaultPriorityFee.toNumber() / GIGA).toString();
-    for (; ;) {
+    for (;;) {
         const priorityFeeStr = askFor(`maxPriorityFeePerGas in GWei`, defaultPriorityFeeStr);
         const priorityFee = parseFloat(priorityFeeStr);
         if (Number.isFinite(priorityFee) && priorityFee >= 0) {
@@ -170,7 +170,7 @@ async function trackDeployment<T extends Contract>(
     fn: () => Promise<T>,
     name: string = `Contract`,
 ): Promise<T> {
-    for (; ;) {
+    for (;;) {
         try {
             console.log(`Deploying ${name} ...`);
 
@@ -301,7 +301,7 @@ function askYesNo(query: string): boolean {
 }
 
 function askForNumber(numberUsage: string, defaultInput?: string): number {
-    for (; ;) {
+    for (;;) {
         const numStr = askFor(numberUsage, defaultInput);
         const num = parseInt(numStr);
         if (Number.isInteger(num)) {
@@ -312,7 +312,7 @@ function askForNumber(numberUsage: string, defaultInput?: string): number {
 }
 
 function askForAddress(addressUsage: string, defaultInput?: string): string {
-    for (; ;) {
+    for (;;) {
         const address = askFor(`the address ` + addressUsage, defaultInput);
         if (utils.isAddress(address)) {
             return address;

@@ -1,7 +1,14 @@
 import hre from "hardhat";
 
 import { chainIds, VERBOSE, ZK_EVM } from "../hardhat.config";
-import { BTCRelay, BTCRelay__factory, LEDOracle, LEDOracle__factory, PriceFeed, PriceFeed__factory } from "../types";
+import {
+    BTCRelay,
+    BTCRelay__factory,
+    LEDOracle,
+    LEDOracle__factory,
+    PriceFeed,
+    PriceFeed__factory,
+} from "../types";
 import { deployWait } from "./utils";
 import { GasOptions } from "./types";
 import { Wallet } from "ethers";
@@ -97,18 +104,22 @@ export async function deployLEDOracle(
         const deployer = zkDeployer.fromEthWallet(hre, wallet);
         const zkArtifact = await deployer.loadArtifact(`PriceFeed`);
         ledOracleContract = (await deployWait(
-            deployer.deploy(zkArtifact, [
-                priceFeedOracle,
-                bitcoinOracle,
-                seedValue,
-                smoothingFactor,
-                initScaleFactor,
-                initKoomeyTimeInSeconds
-            ], {
-                maxFeePerGas: gasOpts?.maxFeePerGas,
-                maxPriorityFeePerGas: gasOpts?.maxPriorityFeePerGas,
-                gasLimit: gasOpts?.gasLimit,
-            }),
+            deployer.deploy(
+                zkArtifact,
+                [
+                    priceFeedOracle,
+                    bitcoinOracle,
+                    seedValue,
+                    smoothingFactor,
+                    initScaleFactor,
+                    initKoomeyTimeInSeconds,
+                ],
+                {
+                    maxFeePerGas: gasOpts?.maxFeePerGas,
+                    maxPriorityFeePerGas: gasOpts?.maxPriorityFeePerGas,
+                    gasLimit: gasOpts?.gasLimit,
+                },
+            ),
         )) as LEDOracle;
     } else {
         const ledOracle: LEDOracle__factory = await hre.ethers.getContractFactory(
@@ -127,7 +138,8 @@ export async function deployLEDOracle(
                     //maxFeePerGas: gasOpts?.maxFeePerGas,
                     //maxPriorityFeePerGas: gasOpts?.maxPriorityFeePerGas,
                     gasLimit: gasOpts?.gasLimit,
-                }),
+                },
+            ),
         );
     }
 
