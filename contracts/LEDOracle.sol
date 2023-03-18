@@ -28,7 +28,7 @@ contract LEDOracle is ILEDOracle {
     uint256 private constant KOOMEY_START_DATE = 1451635200;
     uint256 private constant SECONDS_PER_THIRTY_DAYS = 2592000;
 
-    event LEDPerETH(uint256 timestamp, uint256 raw, uint256 scaled, uint256 smoothed);
+    event LEDPerETHUpdated(uint256 timestamp, uint256 raw, uint256 scaled, uint256 smoothed);
 
     constructor(
         address priceFeedOracleAddress,
@@ -73,7 +73,7 @@ contract LEDOracle is ILEDOracle {
         uint256 scaledLED = kLED * _scaleFactor;
         uint256 smoothedLED = _expMovingAvg.pushValueAndGetAvg(scaledLED);
 
-        emit LEDPerETH(block.timestamp, kLED, scaledLED, smoothedLED);
+        emit LEDPerETHUpdated(block.timestamp, kLED, scaledLED, smoothedLED);
 
         return smoothedLED;
     }
