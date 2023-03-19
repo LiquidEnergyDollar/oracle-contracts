@@ -5,11 +5,15 @@
             "contracts": [
                 {
                     "name": "PriceFeed",
-                    "address": "0x9fdEb7D1AaCd16ecD2e5B7a1e8DBEee8D48130D6"
+                    "address": "0xb1505c1B164D0337fd7221bCBA9E31262602126A"
                 },
                 {
                     "name": "BTCRelay",
                     "address": "0xb8DB22DA8A16bB2a9339301c19B30BcD55248aab"
+                },
+                {
+                    "name": "LEDOracle",
+                    "address": "0x358d5E0Bc482F0AF3F521AAD4095558ce100011d"
                 }
             ]
         }

@@ -1,10 +1,11 @@
-pragma solidity >=0.8.17;
+pragma solidity ^0.8.17;
 
 import "./interfaces/IPriceFeed.sol";
 import "./interfaces/IBitcoinOracle.sol";
 import "./interfaces/ILEDOracle.sol";
 import "./utils/ExpMovingAvg.sol";
 import "solmate/src/utils/FixedPointMathLib.sol";
+import "abdk-libraries-solidity/ABDKMath64x64.sol";
 
 /**
  * @title LEDOracle
@@ -23,12 +24,17 @@ contract LEDOracle is ILEDOracle {
     ExpMovingAvg private immutable _expMovingAvg;
     // Used for setting initial price of LED
     uint256 private immutable _scaleFactor;
-    uint256 private immutable _koomeyTimeInMonths;
+    uint256 private immutable _koomeyTimeInSeconds;
     // Using Jan 01 2016 08:00:00 GMT as start date
     uint256 private constant KOOMEY_START_DATE = 1451635200;
-    uint256 private constant SECONDS_PER_THIRTY_DAYS = 2592000;
 
-    event LEDPerETH(uint timestamp, uint256 raw, uint256 scaled, uint256 smoothed);
+    event LEDPerETHUpdated(
+        uint256 timestamp,
+        uint256 raw,
+        uint256 scaled,
+        uint256 smoothed,
+        uint256 inETH
+    );
 
     constructor(
         address priceFeedOracleAddress,
@@ -36,12 +42,12 @@ contract LEDOracle is ILEDOracle {
         uint256 seedValue,
         uint256 smoothingFactor,
         uint256 initScaleFactor,
-        uint256 initKoomeyTimeInMonths
+        uint256 initKoomeyTimeInSeconds
     ) {
         if (
             block.timestamp <= KOOMEY_START_DATE ||
-            initKoomeyTimeInMonths <= 4 ||
-            initKoomeyTimeInMonths > 100
+            initKoomeyTimeInSeconds <= 10368000 || // ~4 months
+            initKoomeyTimeInSeconds > 259200000 // ~100 months
         ) {
             revert LEDOracle__InvalidInput();
         }
@@ -49,7 +55,7 @@ contract LEDOracle is ILEDOracle {
         _bitcoinOracle = IBitcoinOracle(bitcoinOracleAddress);
         _expMovingAvg = new ExpMovingAvg(seedValue, smoothingFactor);
         _scaleFactor = initScaleFactor;
-        _koomeyTimeInMonths = initKoomeyTimeInMonths;
+        _koomeyTimeInSeconds = initKoomeyTimeInSeconds;
     }
 
     /**
@@ -63,19 +69,21 @@ contract LEDOracle is ILEDOracle {
         uint256 btcReward = _bitcoinOracle.getBTCIssuancePerBlock() * 1e10;
         uint256 btcPerETH = _priceFeedOracle.getBTCPerETH();
 
-        if (btcPerETH <= 0) {
+        if (btcPerETH == 0) {
             revert LEDOracle__InvalidExchangeRate();
         }
 
-        uint256 scaledDiff = this.scaleDifficulty(currDifficulty);
+        uint256 scaledDiff = scaleDifficulty(currDifficulty);
 
         uint256 kLED = FixedPointMathLib.divWadDown(btcReward, scaledDiff);
-        uint256 scaledLED = kLED * _scaleFactor;
-        uint256 smoothedLED = _expMovingAvg.pushValueAndGetAvg(scaledLED);
+        uint256 smoothedLED = _expMovingAvg.pushValueAndGetAvg(kLED);
+        uint256 scaledLED = FixedPointMathLib.mulWadDown(smoothedLED, _scaleFactor);
 
-        emit LEDPerETH(block.timestamp, kLED, scaledLED, smoothedLED);
+        uint256 inETH = FixedPointMathLib.divWadDown(scaledLED, btcPerETH);
 
-        return smoothedLED;
+        emit LEDPerETHUpdated(block.timestamp, kLED, scaledLED, smoothedLED, inETH);
+
+        return inETH;
     }
 
     /**
@@ -83,14 +91,17 @@ contract LEDOracle is ILEDOracle {
      * Energy efficiency doubles in KOOMEY_DOUBLE_TIME_IN_MONTHS
      * @return The scaled difficulty based on Koomey's law
      */
-    function scaleDifficulty(uint256 currDifficulty) external view returns (uint256) {
+    function scaleDifficulty(uint256 currDifficulty) public view returns (uint256) {
         if (currDifficulty < 1e18) {
             revert LEDOracle__InvalidBTCDifficulty();
         }
-        uint timeDelta = block.timestamp - KOOMEY_START_DATE;
-        uint256 koomeyPeriodInSecs = _koomeyTimeInMonths * SECONDS_PER_THIRTY_DAYS;
-        uint256 koomeyPeriods = timeDelta / koomeyPeriodInSecs;
-        uint expectedImprovement = 2 ** (1 + koomeyPeriods);
-        return currDifficulty / expectedImprovement;
+        uint256 timeDelta = block.timestamp - KOOMEY_START_DATE;
+        // We need to convert everything to 64.64 notation so that we can do
+        // 2^x where x is not a whole number
+        int128 koomeyPeriods = ABDKMath64x64.divu(timeDelta, _koomeyTimeInSeconds);
+        int128 koomeyPeriodsPlusOne = ABDKMath64x64.add(ABDKMath64x64.fromUInt(1), koomeyPeriods);
+        int128 expectedImprovement64 = ABDKMath64x64.exp_2(koomeyPeriodsPlusOne);
+        int128 expectedImprovementInv = ABDKMath64x64.inv(expectedImprovement64);
+        return ABDKMath64x64.mulu(expectedImprovementInv, currDifficulty);
     }
 }

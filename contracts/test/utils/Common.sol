@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.17;
+pragma solidity ^0.8.17;
 
 /**
- * @title common
+ * @title Common
  * @author LED Labs
  * @notice General utility functions for tests
  */
-library common {
+library Common {
     /**
      * @notice Converts the seed value to be within the range
      * Useful for fuzz tests since applying assume() to small ranges throws an

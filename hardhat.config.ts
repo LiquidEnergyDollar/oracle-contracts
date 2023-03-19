@@ -20,6 +20,7 @@ import { resolve } from "path";
 import * as toml from "toml";
 
 import "./tasks/btcRelay";
+import "./tasks/ledOracle";
 
 dotenv.config({ path: resolve(__dirname, `./.env`) });
 

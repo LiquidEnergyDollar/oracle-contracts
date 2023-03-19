@@ -4,11 +4,13 @@ import { ethers, network } from "hardhat";
 import * as path from "path";
 import { keyInSelect, keyInYNStrict, question } from "readline-sync";
 import { PriceFeed } from "../types";
-import { deployBTCRelay, deployPriceFeed } from "./deploy";
+import { deployBTCRelay, deployLEDOracle, deployPriceFeed } from "./deploy";
 import { chainIds, explorerUrl, GAS_MODE, UrlType } from "../hardhat.config";
 import { Deployment, DeploymentContract, Deployments, GasOptions } from "./types";
 import { FeeData } from "@ethersproject/providers";
 import { HardhatNetworkHDAccountsConfig } from "hardhat/types";
+import { getContractAddress } from "./utils";
+import * as ledProperties from "../LEDProperties.json";
 
 async function main(wallet?: Wallet, gasOpts?: GasOptions): Promise<void> {
     if (wallet === undefined) {
@@ -34,6 +36,22 @@ async function main(wallet?: Wallet, gasOpts?: GasOptions): Promise<void> {
             }
             if (askYesNo(`Deploy BTCRelay?`)) {
                 await trackDeployment(() => deployBTCRelay(wallet!, gasOpts), `BTCRelay`);
+            }
+            if (askYesNo(`Deploy LEDOracle?`)) {
+                await trackDeployment(
+                    () =>
+                        deployLEDOracle(
+                            getContractAddress(`PriceFeed`),
+                            getContractAddress(`BTCRelay`),
+                            ledProperties.seedValue,
+                            ledProperties.smoothingFactor,
+                            ledProperties.initScaleFactor,
+                            ledProperties.initKoomeyTimeInSeconds,
+                            wallet!,
+                            gasOpts,
+                        ),
+                    `LEDOracle`,
+                );
             }
             void main(wallet, gasOpts);
             break;

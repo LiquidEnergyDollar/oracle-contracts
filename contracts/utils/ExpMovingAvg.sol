@@ -1,7 +1,8 @@
-pragma solidity >=0.8.17;
+pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "solmate/src/utils/FixedPointMathLib.sol";
+import "../utils/IntFixedPointMathLib.sol";
 
 /**
  * @title ExpMovingAvg
@@ -65,7 +66,7 @@ contract ExpMovingAvg is Ownable {
     function getGlobalAvg() public view returns (uint256) {
         uint256 epochValue = FixedPointMathLib.divWadDown(_epochSum, _epochCount);
         int256 delta = (int(epochValue) - int(_globalValue));
-        int256 weightedDelta = delta / int(_globalSmoothingFactor);
+        int256 weightedDelta = IntFixedPointMathLib.divWadDown(delta, int(_globalSmoothingFactor));
         return uint256(weightedDelta + int(_globalValue));
     }
 
