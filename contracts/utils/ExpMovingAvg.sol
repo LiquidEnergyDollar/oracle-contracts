@@ -30,7 +30,7 @@ contract ExpMovingAvg is Ownable {
      */
     constructor(uint256 seedValue, uint256 initSmoothingFactor) {
         _globalValue = seedValue;
-        if (initSmoothingFactor == 0 || initSmoothingFactor > 1000e18) {
+        if (initSmoothingFactor == 0) {
             revert ExpMovingAvg__InvalidInput();
         }
         _globalSmoothingFactor = initSmoothingFactor;
