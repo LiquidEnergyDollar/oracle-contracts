@@ -9,7 +9,7 @@ import "abdk-libraries-solidity/ABDKMath64x64.sol";
 import "forge-std/src/console2.sol";
 
 contract LEDOracleTest is Test {
-    uint256 private constant KOOMEY_START_DATE = 1451635200; // 2016
+    uint256 private constant KOOMEY_START_DATE = 1444334400; // 10/10/2015
     uint256 private constant MAX_DATE = 2104819200; // 2036
     uint256 private constant EXAMPLE_KOOMEY_PERIOD = 38880000;
     uint256 private constant EXAMPLE_SMOOTHING_FACTOR = 20e18;
@@ -90,9 +90,12 @@ contract LEDOracleTest is Test {
     }
 
     function testGetLEDPerETH() public {
-        vm.warp(1679092693);
-        uint256 avgSeed = 438376679200;
-        uint256 smoothingFactor = 12658227848101265822;
+        uint256 currTime = 1679346268;
+        vm.warp(currTime);
+        uint256 btcPerEth = 0.062608081877e18;
+        uint256 avgSeed = 16982939;
+        uint256 smoothingFactor = 8000e18;
+        uint256 koomeyPeriod = 40176000;
         // Mock Bitcoin Oracle
         vm.mockCall(
             _bitcoinOracle,
@@ -109,7 +112,7 @@ contract LEDOracleTest is Test {
         vm.mockCall(
             _priceFeedOracle,
             abi.encodeWithSelector(IPriceFeed.getBTCPerETH.selector),
-            abi.encode(0.06453020988687e18)
+            abi.encode(btcPerEth)
         );
 
         _ledOracle = new LEDOracle(
@@ -117,8 +120,8 @@ contract LEDOracleTest is Test {
             _bitcoinOracle,
             avgSeed,
             smoothingFactor,
-            291367606668529420000000000,
-            EXAMPLE_KOOMEY_PERIOD
+            6539921657784e18,
+            koomeyPeriod
         );
         console2.log("LED Per ETH", _ledOracle.getLEDPerETH());
     }

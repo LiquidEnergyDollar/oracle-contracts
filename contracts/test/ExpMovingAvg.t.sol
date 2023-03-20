@@ -27,8 +27,6 @@ contract EMATest is Test {
 
     function testConstructorFailures() public {
         vm.expectRevert();
-        _expMovingAvg = new ExpMovingAvg(1e18, 1001e18);
-        vm.expectRevert();
         _expMovingAvg = new ExpMovingAvg(1e18, 0);
     }
 

@@ -25,8 +25,8 @@ contract LEDOracle is ILEDOracle {
     // Used for setting initial price of LED
     uint256 private immutable _scaleFactor;
     uint256 private immutable _koomeyTimeInSeconds;
-    // Using Jan 01 2016 08:00:00 GMT as start date
-    uint256 private constant KOOMEY_START_DATE = 1451635200;
+    // Using Oct 10 2015 13:00:00 GMT as start date
+    uint256 private constant KOOMEY_START_DATE = 1444334400;
 
     event LEDPerETHUpdated(
         uint256 timestamp,
@@ -74,7 +74,6 @@ contract LEDOracle is ILEDOracle {
         }
 
         uint256 scaledDiff = scaleDifficulty(currDifficulty);
-
         uint256 kLED = FixedPointMathLib.divWadDown(btcReward, scaledDiff);
         uint256 smoothedLED = _expMovingAvg.pushValueAndGetAvg(kLED);
         uint256 scaledLED = FixedPointMathLib.mulWadDown(smoothedLED, _scaleFactor);
