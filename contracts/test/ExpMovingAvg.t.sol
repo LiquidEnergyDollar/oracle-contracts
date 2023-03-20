@@ -89,7 +89,7 @@ contract EMATest is Test {
 
     function testCrossEpochAvg() public {
         vm.warp(KOOMEY_START_DATE);
-        
+
         _expMovingAvg = new ExpMovingAvg(1e18, EXAMPLE_SMOOTHING_FACTOR);
         uint currAvg = _expMovingAvg.pushValueAndGetAvg(4e18);
         assertEq(currAvg, 1.15e18);
