@@ -125,4 +125,119 @@ contract LEDOracleTest is Test {
         );
         console2.log("LED Per ETH", _ledOracle.getLEDPerETH());
     }
+
+    function testVolatilityUp() public {
+        vm.warp(1679346709);
+        uint256 avgSeed = 16982939;
+        uint256 smoothingFactor = 8000e18;
+        // Mock Bitcoin Oracle
+        vm.mockCall(
+            _bitcoinOracle,
+            abi.encodeWithSelector(IBitcoinOracle.getCurrentEpochDifficulty.selector),
+            abi.encode(43551722213590)
+        );
+        vm.mockCall(
+            _bitcoinOracle,
+            abi.encodeWithSelector(IBitcoinOracle.getBTCIssuancePerBlock.selector),
+            abi.encode(6.25e8)
+        );
+
+        // Mock PriceFeed response
+        vm.mockCall(
+            _priceFeedOracle,
+            abi.encodeWithSelector(IPriceFeed.getBTCPerETH.selector),
+            abi.encode(0.06453020988687e18)
+        );
+
+        _ledOracle = new LEDOracle(
+            _priceFeedOracle,
+            _bitcoinOracle,
+            avgSeed,
+            smoothingFactor,
+            6539921657784e18,
+            EXAMPLE_KOOMEY_PERIOD
+        );
+        console2.log("LED Per ETH", _ledOracle.getLEDPerETH());
+
+        // Move to next epoch - +1 hour
+        vm.warp(1679096293);
+
+        // Mock PriceFeed response
+        // +1% movement
+        vm.mockCall(
+            _priceFeedOracle,
+            abi.encodeWithSelector(IPriceFeed.getBTCPerETH.selector),
+            abi.encode(0.0651020988687e18)
+        );
+        console2.log("LED Per ETH +1 percent movement", _ledOracle.getLEDPerETH());
+
+        // Move to next epoch - +1 hour
+        vm.warp(1679099893);
+
+        // Mock PriceFeed response
+        // +2% movement
+        vm.mockCall(
+            _priceFeedOracle,
+            abi.encodeWithSelector(IPriceFeed.getBTCPerETH.selector),
+            abi.encode(0.0657020988687e18)
+        );
+        console2.log("LED Per ETH +2 percent movement", _ledOracle.getLEDPerETH());
+    }
+    function testVolatilityDown() public {
+        vm.warp(1679346709);
+        uint256 avgSeed = 16982939;
+        uint256 smoothingFactor = 8000e18;
+        // Mock Bitcoin Oracle
+        vm.mockCall(
+            _bitcoinOracle,
+            abi.encodeWithSelector(IBitcoinOracle.getCurrentEpochDifficulty.selector),
+            abi.encode(43551722213590)
+        );
+        vm.mockCall(
+            _bitcoinOracle,
+            abi.encodeWithSelector(IBitcoinOracle.getBTCIssuancePerBlock.selector),
+            abi.encode(6.25e8)
+        );
+
+        // Mock PriceFeed response
+        vm.mockCall(
+            _priceFeedOracle,
+            abi.encodeWithSelector(IPriceFeed.getBTCPerETH.selector),
+            abi.encode(0.06453020988687e18)
+        );
+
+        _ledOracle = new LEDOracle(
+            _priceFeedOracle,
+            _bitcoinOracle,
+            avgSeed,
+            smoothingFactor,
+            6539921657784e18,
+            EXAMPLE_KOOMEY_PERIOD
+        );
+        console2.log("LED Per ETH", _ledOracle.getLEDPerETH());
+
+        // Move to next epoch - +1 hour
+        vm.warp(1679096293);
+
+        // Mock PriceFeed response
+        // -1% movement
+        vm.mockCall(
+            _priceFeedOracle,
+            abi.encodeWithSelector(IPriceFeed.getBTCPerETH.selector),
+            abi.encode(0.0638020988687e18)
+        );
+        console2.log("LED Per ETH -1 percent movement", _ledOracle.getLEDPerETH());
+
+        // Move to next epoch - +1 hour
+        vm.warp(1679099893);
+
+        // Mock PriceFeed response
+        // -2% movement
+        vm.mockCall(
+            _priceFeedOracle,
+            abi.encodeWithSelector(IPriceFeed.getBTCPerETH.selector),
+            abi.encode(0.0632020988687e18)
+        );
+        console2.log("LED Per ETH -2 percent movement", _ledOracle.getLEDPerETH());
+    }
 }
