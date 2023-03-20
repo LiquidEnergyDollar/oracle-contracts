@@ -16,11 +16,10 @@ contract ExpMovingAvg is Ownable {
 
     uint256 private _globalValue;
     uint256 private _currEpoch;
-    uint256 private _epochSum = 0;
-    uint256 private _epochCount = 0;
+    uint256 private _epochValue = 0;
     uint256 private _globalSmoothingFactor;
-    // One day
-    uint256 private constant EPOCH_PERIOD_IN_SEC = 86400;
+    // One hour
+    uint256 private constant EPOCH_PERIOD_IN_SEC = 3600;
 
     /**
      * @notice Creates a new EMA with the provided parameters.
@@ -50,12 +49,9 @@ contract ExpMovingAvg is Ownable {
         if (epoch != _currEpoch) {
             _currEpoch = epoch;
             _globalValue = getGlobalAvg();
-            _epochSum = 0;
-            _epochCount = 0;
         }
 
-        _epochSum += value;
-        _epochCount += 1e18; // _epochCount++
+        _epochValue = value;
 
         return getGlobalAvg();
     }
@@ -64,8 +60,7 @@ contract ExpMovingAvg is Ownable {
      * @return The current exponential moving average considering all values
      */
     function getGlobalAvg() public view returns (uint256) {
-        uint256 epochValue = FixedPointMathLib.divWadDown(_epochSum, _epochCount);
-        int256 delta = (int(epochValue) - int(_globalValue));
+        int256 delta = (int(_epochValue) - int(_globalValue));
         int256 weightedDelta = IntFixedPointMathLib.divWadDown(delta, int(_globalSmoothingFactor));
         return uint256(weightedDelta + int(_globalValue));
     }

@@ -17,7 +17,7 @@ contract EMATest is Test {
     ExpMovingAvg private _expMovingAvg;
     uint256[] private _values;
     // One day
-    uint256 private constant EPOCH_PERIOD_IN_SEC = 86400;
+    uint256 private constant EPOCH_PERIOD_IN_SEC = 3600;
     uint256 private constant KOOMEY_START_DATE = 1451635200;
     uint256 private constant EXAMPLE_SMOOTHING_FACTOR = 20e18;
 
@@ -87,18 +87,17 @@ contract EMATest is Test {
         testEMA(seedValue, EXAMPLE_SMOOTHING_FACTOR, _values);
     }
 
-    function testCrossEpochAvg(uint256 addValue) public {
+    function testCrossEpochAvg() public {
         vm.warp(KOOMEY_START_DATE);
-        testIntraEpochAvg(1e18, 4e18);
-        // avg should be 1075e15
-        uint seedValue = 1075e15;
+        
+        _expMovingAvg = new ExpMovingAvg(1e18, EXAMPLE_SMOOTHING_FACTOR);
+        uint currAvg = _expMovingAvg.pushValueAndGetAvg(4e18);
+        assertEq(currAvg, 1.15e18);
 
         // next epoch
         vm.warp(KOOMEY_START_DATE + EPOCH_PERIOD_IN_SEC);
-
-        // Allow room for 18 decimal places
-        vm.assume(addValue < 1e59);
-        testIntraEpochAvg(seedValue, 4e18);
+        currAvg = _expMovingAvg.pushValueAndGetAvg(2e18);
+        assertEq(currAvg, 1.1925e18);
     }
 
     function testMissedEpochAvg(uint256 addValue) public {
@@ -130,12 +129,10 @@ contract EMATest is Test {
 
     function testEMA(uint256 seedValue, uint smoothingFactor, uint[] memory _valuesToAdd) private {
         _expMovingAvg = new ExpMovingAvg(seedValue, smoothingFactor);
-        uint sum = 0;
         for (uint i = 0; i < _valuesToAdd.length; i++) {
-            sum += _valuesToAdd[i];
             uint currAvg = _expMovingAvg.pushValueAndGetAvg(_valuesToAdd[i]);
 
-            int delta = int(sum / (i + 1)) - int(seedValue);
+            int delta = int(_valuesToAdd[i]) - int(seedValue);
             int weightedDelta = IntFixedPointMathLib.divWadDown(delta, int(smoothingFactor));
             uint expected = uint(weightedDelta + int(seedValue));
             assertEq(currAvg, expected);
