@@ -25,8 +25,8 @@ contract LEDOracle is ILEDOracle {
     // Used for setting initial price of LED
     uint256 private immutable _scaleFactor;
     uint256 private immutable _koomeyTimeInSeconds;
-    // Using Oct 10 2015 13:00:00 GMT as start date
-    uint256 private constant KOOMEY_START_DATE = 1444334400;
+    // Using Oct 08 2015 13:00:00 GMT as start date
+    uint256 private constant KOOMEY_START_DATE = 1444309200;
     // Last updated price
     uint256 public lastLedPricePerETH;
 
