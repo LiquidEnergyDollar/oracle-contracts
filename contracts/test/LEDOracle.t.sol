@@ -7,12 +7,14 @@ import "../interfaces/IBitcoinOracle.sol";
 import "../interfaces/IPriceFeed.sol";
 import "abdk-libraries-solidity/ABDKMath64x64.sol";
 import "forge-std/src/console2.sol";
+import "solmate/src/utils/FixedPointMathLib.sol";
 
 contract LEDOracleTest is Test {
     uint256 private constant KOOMEY_START_DATE = 1444309200; // 10/08/2015
     uint256 private constant MAX_DATE = 2104819200; // 2036
-    uint256 private constant EXAMPLE_KOOMEY_PERIOD = 38880000;
+    uint256 private constant EXAMPLE_KOOMEY_PERIOD_IN_SECS = 41472000; // 16 months
     uint256 private constant EXAMPLE_SMOOTHING_FACTOR = 20e18;
+    uint256 private constant ONE_HOUR_IN_SECS = 3600;
     LEDOracle public _ledOracle;
     address private _bitcoinOracle = address(0);
     address private _priceFeedOracle = address(1);
@@ -25,7 +27,7 @@ contract LEDOracleTest is Test {
             1e18,
             EXAMPLE_SMOOTHING_FACTOR,
             1e18,
-            EXAMPLE_KOOMEY_PERIOD
+            EXAMPLE_KOOMEY_PERIOD_IN_SECS
         );
     }
 
@@ -38,7 +40,7 @@ contract LEDOracleTest is Test {
             1e18,
             EXAMPLE_SMOOTHING_FACTOR,
             1e18,
-            EXAMPLE_KOOMEY_PERIOD
+            EXAMPLE_KOOMEY_PERIOD_IN_SECS
         );
     }
 
@@ -50,10 +52,34 @@ contract LEDOracleTest is Test {
             1e18,
             EXAMPLE_SMOOTHING_FACTOR,
             1e18,
-            EXAMPLE_KOOMEY_PERIOD
+            EXAMPLE_KOOMEY_PERIOD_IN_SECS
         );
         vm.expectRevert();
         _ledOracle.scaleDifficulty(0);
+    }
+
+    function testKoomeysLawDirect() public {
+        uint currDifficulty = 43551722213590e18;
+        uint currTimestamp = 1679346268;
+        uint avgSeed = 16982939;
+        uint koomeyPeriod = 44064000;
+        vm.warp(currTimestamp);
+
+        _ledOracle = new LEDOracle(
+            _priceFeedOracle,
+            _bitcoinOracle,
+            avgSeed,
+            EXAMPLE_SMOOTHING_FACTOR,
+            1e18,
+            koomeyPeriod
+        );
+
+        uint256 scaledDiff = _ledOracle.scaleDifficulty(currDifficulty);
+        assertEq(scaledDiff, 539862852515334113127309231517);
+        // Move fwd one hour
+        vm.warp(currTimestamp + ONE_HOUR_IN_SECS);
+        scaledDiff = _ledOracle.scaleDifficulty(currDifficulty);
+        assertEq(scaledDiff, 539832281124911441172265156151);
     }
 
     function testKoomeysLaw(
@@ -89,10 +115,11 @@ contract LEDOracleTest is Test {
         assertEq(scaledDiff, expectedScaledDiff);
     }
 
-    function testGetLEDPerETH() public {
+    function testGetUSDPerLED() public {
         uint256 currTime = 1679346268;
         vm.warp(currTime);
-        uint256 btcPerEth = 0.06248588667e18;
+        uint256 usdPerBTC = 27000;
+        uint256 usdPerETH = 1700;
         uint256 avgSeed = 16982939;
         uint256 smoothingFactor = 8000e18;
         uint256 koomeyPeriod = 40176000;
@@ -111,8 +138,8 @@ contract LEDOracleTest is Test {
         // Mock PriceFeed response
         vm.mockCall(
             _priceFeedOracle,
-            abi.encodeWithSelector(IPriceFeed.getBTCPerETH.selector),
-            abi.encode(btcPerEth)
+            abi.encodeWithSelector(IPriceFeed.getExchangeRateFeeds.selector),
+            abi.encode(usdPerETH, usdPerBTC)
         );
 
         _ledOracle = new LEDOracle(
@@ -123,13 +150,14 @@ contract LEDOracleTest is Test {
             6390600057784000000000000000000,
             koomeyPeriod
         );
-        console2.log("LED Per ETH", _ledOracle.getLEDPerETH());
+        console2.log("USD Per LED", _ledOracle.getUSDPerLED());
     }
 
     function testVolatilityUp() public {
-        vm.warp(1679346709);
-        uint256 avgSeed = 16982939;
-        uint256 smoothingFactor = 8000e18;
+        uint256 startTime = 1679346709;
+        vm.warp(startTime);
+        uint256 avgSeed = 27542e18;
+        uint256 smoothingFactor = 8760e18;
         // Mock Bitcoin Oracle
         vm.mockCall(
             _bitcoinOracle,
@@ -145,8 +173,8 @@ contract LEDOracleTest is Test {
         // Mock PriceFeed response
         vm.mockCall(
             _priceFeedOracle,
-            abi.encodeWithSelector(IPriceFeed.getBTCPerETH.selector),
-            abi.encode(0.06453020988687e18)
+            abi.encodeWithSelector(IPriceFeed.getExchangeRateFeeds.selector),
+            abi.encode(1700e18, 27542e18)
         );
 
         _ledOracle = new LEDOracle(
@@ -155,39 +183,45 @@ contract LEDOracleTest is Test {
             avgSeed,
             smoothingFactor,
             6539921657784e18,
-            EXAMPLE_KOOMEY_PERIOD
+            EXAMPLE_KOOMEY_PERIOD_IN_SECS
         );
-        console2.log("LED Per ETH", _ledOracle.getLEDPerETH());
+        uint hour0 = _ledOracle.getUSDPerLED();
+        console2.log("USD Per LED", hour0);
 
         // Move to next epoch - +1 hour
-        vm.warp(1679096293);
+        vm.warp(startTime + ONE_HOUR_IN_SECS);
 
         // Mock PriceFeed response
         // +1% movement
         vm.mockCall(
             _priceFeedOracle,
-            abi.encodeWithSelector(IPriceFeed.getBTCPerETH.selector),
-            abi.encode(0.0651020988687e18)
+            abi.encodeWithSelector(IPriceFeed.getExchangeRateFeeds.selector),
+            abi.encode(1700e18, 27817.42e18)
         );
-        console2.log("LED Per ETH +1 percent movement", _ledOracle.getLEDPerETH());
+        uint hour1 = _ledOracle.getUSDPerLED();
+        console2.log("USD Per LED +1 percent movement", hour1);
 
         // Move to next epoch - +1 hour
-        vm.warp(1679099893);
+        vm.warp(startTime + ONE_HOUR_IN_SECS + ONE_HOUR_IN_SECS);
 
         // Mock PriceFeed response
         // +2% movement
         vm.mockCall(
             _priceFeedOracle,
-            abi.encodeWithSelector(IPriceFeed.getBTCPerETH.selector),
-            abi.encode(0.0657020988687e18)
+            abi.encodeWithSelector(IPriceFeed.getExchangeRateFeeds.selector),
+            abi.encode(1700e18, 28092.84e18)
         );
-        console2.log("LED Per ETH +2 percent movement", _ledOracle.getLEDPerETH());
+        uint hour2 = _ledOracle.getUSDPerLED();
+        console2.log("USD Per LED +2 percent movement", hour2);
+        assertGt(hour1, hour0);
+        assertGt(hour2, hour1);
     }
 
     function testVolatilityDown() public {
-        vm.warp(1679346709);
-        uint256 avgSeed = 16982939;
-        uint256 smoothingFactor = 8000e18;
+        uint256 startTime = 1679346709;
+        vm.warp(startTime);
+        uint256 avgSeed = 27542e18;
+        uint256 smoothingFactor = 8760e18;
         // Mock Bitcoin Oracle
         vm.mockCall(
             _bitcoinOracle,
@@ -203,8 +237,8 @@ contract LEDOracleTest is Test {
         // Mock PriceFeed response
         vm.mockCall(
             _priceFeedOracle,
-            abi.encodeWithSelector(IPriceFeed.getBTCPerETH.selector),
-            abi.encode(0.06453020988687e18)
+            abi.encodeWithSelector(IPriceFeed.getExchangeRateFeeds.selector),
+            abi.encode(1700e18, 27542e18)
         );
 
         _ledOracle = new LEDOracle(
@@ -213,32 +247,50 @@ contract LEDOracleTest is Test {
             avgSeed,
             smoothingFactor,
             6539921657784e18,
-            EXAMPLE_KOOMEY_PERIOD
+            EXAMPLE_KOOMEY_PERIOD_IN_SECS
         );
-        console2.log("LED Per ETH", _ledOracle.getLEDPerETH());
+        uint hour0 = _ledOracle.getUSDPerLED();
+        console2.log("USD Per LED", hour0);
 
         // Move to next epoch - +1 hour
-        vm.warp(1679096293);
+        vm.warp(startTime + ONE_HOUR_IN_SECS);
 
         // Mock PriceFeed response
-        // -1% movement
+        // -5% movement
         vm.mockCall(
             _priceFeedOracle,
-            abi.encodeWithSelector(IPriceFeed.getBTCPerETH.selector),
-            abi.encode(0.0638020988687e18)
+            abi.encodeWithSelector(IPriceFeed.getExchangeRateFeeds.selector),
+            abi.encode(1700e18, 26164.9e18)
         );
-        console2.log("LED Per ETH -1 percent movement", _ledOracle.getLEDPerETH());
+        uint hour1 = _ledOracle.getUSDPerLED();
+        //console2.log("USD Per LED -1 percent movement", hour1);
 
         // Move to next epoch - +1 hour
-        vm.warp(1679099893);
+        vm.warp(startTime + ONE_HOUR_IN_SECS + ONE_HOUR_IN_SECS);
 
         // Mock PriceFeed response
-        // -2% movement
+        // -10% movement
         vm.mockCall(
             _priceFeedOracle,
-            abi.encodeWithSelector(IPriceFeed.getBTCPerETH.selector),
-            abi.encode(0.0632020988687e18)
+            abi.encodeWithSelector(IPriceFeed.getExchangeRateFeeds.selector),
+            abi.encode(1700e18, 24787.8e18)
         );
-        console2.log("LED Per ETH -2 percent movement", _ledOracle.getLEDPerETH());
+        uint hour2 = _ledOracle.getUSDPerLED();
+        //console2.log("USD Per LED -2 percent movement", hour2);
+
+        // for (uint i = 2; i < 1000; i++) {
+        // vm.warp(startTime + ONE_HOUR_IN_SECS * i);
+        //     vm.mockCall(
+        //         _priceFeedOracle,
+        //         abi.encodeWithSelector(IPriceFeed.getExchangeRateFeeds.selector),
+        //         abi.encode(1700e18, 26164.9e18)
+        //     );
+        //     uint result = _ledOracle.getUSDPerLED();
+        //     //console2.log("", result);
+
+        // }
+
+        assertLt(hour1, hour0);
+        assertLt(hour2, hour1);
     }
 }

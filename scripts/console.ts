@@ -60,7 +60,7 @@ async function main(wallet?: Wallet, gasOpts?: GasOptions): Promise<void> {
             const addr = askForContract(`PriceFeed`);
             const priceFeed: PriceFeed = await ethers.getContractAt(`PriceFeed`, addr);
 
-            const btcPerETH: BigNumber = await priceFeed.getBTCPerETH();
+            const btcPerETH: BigNumber = await priceFeed.getExchangeRateFeeds();
             console.log(`current btcPerETH: ${btcPerETH}`);
             void main(wallet, gasOpts);
             return;

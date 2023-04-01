@@ -1,5 +1,8 @@
 pragma solidity ^0.8.17;
 
 interface IPriceFeed {
-    function getBTCPerETH() external view returns (uint256);
+    /**
+     * @return USD/ETH and USD/BTC ratios with 18 points of precision
+     */
+    function getExchangeRateFeeds() external view returns (uint256, uint256);
 }

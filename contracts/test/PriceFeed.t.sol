@@ -17,53 +17,55 @@ contract PriceFeedTest is Test {
 
     function testInvalidResponse() public {
         vm.expectRevert();
-        callGetBTCPerETHWithInput(0, 1);
+        mockOracleResponses(0, 1);
         vm.expectRevert();
-        callGetBTCPerETHWithInput(1, 0);
+        mockOracleResponses(1, 0);
         vm.expectRevert();
-        callGetBTCPerETHWithInput(-1, 1);
+        mockOracleResponses(-1, 1);
         vm.expectRevert();
-        callGetBTCPerETHWithInput(1, -1);
+        mockOracleResponses(1, -1);
     }
 
-    function testGetBTCPerETHFuzzer(int256 btcPrice, int256 ethPrice) public {
+    function testGetExchangeRateFeedsFuzzer(int256 btcPrice, int256 ethPrice) public {
         vm.assume(btcPrice > .1e18 && ethPrice > .1e18);
         // Allow room for 8 decimal places
         vm.assume(btcPrice <= MAX_PRICE && ethPrice <= MAX_PRICE);
-        callGetBTCPerETHWithInput(btcPrice, ethPrice);
+        callGetExchangeRateFeedsWithInput(btcPrice, ethPrice);
     }
 
-    function testGetBTCPerETH() public {
+    function testGetExchangeRateFeeds() public {
         // $20k
         int256 btcPrice = 20000e8;
         // $1.5k
         int256 ethPrice = 1500e8;
-        // Expect the result to be .075
-        assertEq(callGetBTCPerETHWithInput(btcPrice, ethPrice), .075e18);
+        callGetExchangeRateFeedsWithInput(btcPrice, ethPrice);
 
         // $1.5k
         btcPrice = 1500e8;
         // $20k
         ethPrice = 20000e8;
-        // Expect the result to be 13.333333333333333333
-        assertEq(callGetBTCPerETHWithInput(btcPrice, ethPrice), 13333333333333333333);
+        callGetExchangeRateFeedsWithInput(btcPrice, ethPrice);
 
         // $150T
         btcPrice = 1500000000000e8;
         // $.000015
         ethPrice = 150;
-        // Expect the result to be 0.000000000000000001
-        assertEq(callGetBTCPerETHWithInput(btcPrice, ethPrice), 1);
+        callGetExchangeRateFeedsWithInput(btcPrice, ethPrice);
 
         // max value
         btcPrice = MAX_PRICE;
         // max value
         ethPrice = MAX_PRICE;
-        // Expect the result to be 1
-        assertEq(callGetBTCPerETHWithInput(btcPrice, ethPrice), 1e18);
+        callGetExchangeRateFeedsWithInput(btcPrice, ethPrice);
     }
 
-    function callGetBTCPerETHWithInput(int256 btcPrice, int256 ethPrice) private returns (uint256) {
+    function callGetExchangeRateFeedsWithInput(int256 btcPrice, int256 ethPrice) private {
+        (uint256 btcPerETH, uint256 usdPerBTC) = mockOracleResponses(btcPrice, ethPrice);
+        assertEq(btcPerETH, uint256(ethPrice * 1e10));
+        assertEq(usdPerBTC, uint256(btcPrice * 1e10));
+    }
+    function mockOracleResponses(int256 btcPrice, int256 ethPrice) private
+    returns (uint256, uint256) {
         // BTC chainlink contract
         vm.mockCall(
             _btcOracle,
@@ -78,6 +80,6 @@ contract PriceFeedTest is Test {
             abi.encode(1, ethPrice, 1, 1, 1)
         );
 
-        return _priceFeed.getBTCPerETH();
+        return _priceFeed.getExchangeRateFeeds();
     }
 }

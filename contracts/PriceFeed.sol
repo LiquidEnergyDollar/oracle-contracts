@@ -29,10 +29,9 @@ contract PriceFeed is IPriceFeed {
     }
 
     /**
-     * @notice Queries Chainlink price feeds for ETH/USD + BTC/USD
-     * Calculates BTC/ETH with 18 decimals of precision
+     * @return USD/ETH and USD/BTC ratios with 18 points of precision
      */
-    function getBTCPerETH() external view returns (uint256) {
+    function getExchangeRateFeeds() external view returns (uint256, uint256) {
         (, int256 btcUSDPrice, , , ) = _btcUSD.latestRoundData();
         (, int256 ethUSDPrice, , , ) = _ethUSD.latestRoundData();
 
@@ -45,8 +44,8 @@ contract PriceFeed is IPriceFeed {
 
         // Chainlink prices are in 1e8 precision
         // Convert them to 1e18 before division
-        uint256 ethUSD = uint256(ethUSDPrice * 1e10);
-        uint256 btcUSD = uint256(btcUSDPrice * 1e10);
-        return FixedPointMathLib.divWadDown(ethUSD, btcUSD);
+        uint256 usdPerETH = uint256(ethUSDPrice * 1e10);
+        uint256 usdPerBTC = uint256(btcUSDPrice * 1e10);
+        return (usdPerETH, usdPerBTC);
     }
 }

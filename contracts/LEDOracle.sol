@@ -6,6 +6,7 @@ import "./interfaces/ILEDOracle.sol";
 import "./utils/ExpMovingAvg.sol";
 import "solmate/src/utils/FixedPointMathLib.sol";
 import "abdk-libraries-solidity/ABDKMath64x64.sol";
+import "forge-std/src/console2.sol";
 
 /**
  * @title LEDOracle
@@ -34,17 +35,17 @@ contract LEDOracle is ILEDOracle {
         uint256 timestamp,
         uint256 currDifficulty,
         uint256 btcReward,
-        uint256 btcPerETH,
-        uint256 raw,
-        uint256 scaled,
-        uint256 smoothed,
-        uint256 pricePerETH
+        uint256 usdPerBTC,
+        uint256 kLED,
+        uint256 smoothedUSDPerBTC,
+        uint256 smoothedLEDInUSD,
+        uint256 scaledLEDInUSD
     );
 
     constructor(
         address priceFeedOracleAddress,
         address bitcoinOracleAddress,
-        uint256 seedValue,
+        uint256 emaSeedValue,
         uint256 smoothingFactor,
         uint256 initScaleFactor,
         uint256 initKoomeyTimeInSeconds
@@ -58,50 +59,52 @@ contract LEDOracle is ILEDOracle {
         }
         _priceFeedOracle = IPriceFeed(priceFeedOracleAddress);
         _bitcoinOracle = IBitcoinOracle(bitcoinOracleAddress);
-        _expMovingAvg = new ExpMovingAvg(seedValue, smoothingFactor);
+        _expMovingAvg = new ExpMovingAvg(emaSeedValue, smoothingFactor);
         _scaleFactor = initScaleFactor;
         _koomeyTimeInSeconds = initKoomeyTimeInSeconds;
     }
 
     /**
-     * @notice Returns the LED per ETH
+     * @notice Returns the USD/LED
      * Updates the contract state to allow for moving avg
-     * @return The LED/ETH ratio
+     * @return The USD/LED ratio
      */
-    function getLEDPerETH() external returns (uint256) {
+    function getUSDPerLED() external returns (uint256) {
         uint256 currDifficulty = _bitcoinOracle.getCurrentEpochDifficulty() * 1e18;
         // Satoshi's have 8 points of precision
         uint256 btcReward = _bitcoinOracle.getBTCIssuancePerBlock() * 1e10;
-        uint256 btcPerETH = _priceFeedOracle.getBTCPerETH();
+        (, uint256 usdPerBTC) = _priceFeedOracle.getExchangeRateFeeds();
 
-        if (btcPerETH == 0) {
+        if (usdPerBTC == 0) {
             revert LEDOracle__InvalidExchangeRate();
         }
 
         uint256 scaledDiff = scaleDifficulty(currDifficulty);
         uint256 kLED = FixedPointMathLib.divWadDown(btcReward, scaledDiff);
-        uint256 smoothedLED = _expMovingAvg.pushValueAndGetAvg(kLED);
-        uint256 scaledLED = FixedPointMathLib.mulWadDown(smoothedLED, _scaleFactor);
-
-        lastLedPricePerETH = FixedPointMathLib.divWadDown(scaledLED, btcPerETH);
+        console2.log("kLED", kLED);
+        uint256 smoothedUSDPerBTC = _expMovingAvg.pushValueAndGetAvg(usdPerBTC);
+        console2.log("", smoothedUSDPerBTC);
+        uint256 smoothedLEDInUSD = FixedPointMathLib.mulWadDown(kLED, smoothedUSDPerBTC);
+        //console2.log("", smoothedLEDInUSD);
+        uint256 scaledLEDInUSD = FixedPointMathLib.mulWadDown(smoothedLEDInUSD, _scaleFactor);
 
         emit LEDPerETHUpdated(
             block.timestamp,
             currDifficulty,
             btcReward,
-            btcPerETH,
+            usdPerBTC,
             kLED,
-            scaledLED,
-            smoothedLED,
-            lastLedPricePerETH
+            smoothedUSDPerBTC,
+            smoothedLEDInUSD,
+            scaledLEDInUSD
         );
 
-        return lastLedPricePerETH;
+        return scaledLEDInUSD;
     }
 
     /**
      * @notice Scale difficulty to account for energy efficiency improvements
-     * Energy efficiency doubles in KOOMEY_DOUBLE_TIME_IN_MONTHS
+     * Energy efficiency doubles in _koomeyTimeInSeconds
      * @return The scaled difficulty based on Koomey's law
      */
     function scaleDifficulty(uint256 currDifficulty) public view returns (uint256) {
