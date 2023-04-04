@@ -6,7 +6,6 @@ import "./interfaces/ILEDOracle.sol";
 import "./utils/ExpMovingAvg.sol";
 import "solmate/src/utils/FixedPointMathLib.sol";
 import "abdk-libraries-solidity/ABDKMath64x64.sol";
-import "forge-std/src/console2.sol";
 
 /**
  * @title LEDOracle
@@ -22,7 +21,8 @@ contract LEDOracle is ILEDOracle {
 
     IPriceFeed private immutable _priceFeedOracle;
     IBitcoinOracle private immutable _bitcoinOracle;
-    ExpMovingAvg private immutable _expMovingAvg;
+    ExpMovingAvg private immutable _diffExpMovingAvg;
+    ExpMovingAvg private immutable _rewardExpMovingAvg;
     // Used for setting initial price of LED
     uint256 private immutable _scaleFactor;
     uint256 private immutable _koomeyTimeInSeconds;
@@ -36,8 +36,9 @@ contract LEDOracle is ILEDOracle {
         uint256 currDifficulty,
         uint256 btcReward,
         uint256 usdPerBTC,
-        uint256 kLED,
-        uint256 smoothedUSDPerBTC,
+        uint256 kDiff,
+        uint256 smoothedKDiff,
+        uint256 smoothedBlockRewardUSD,
         uint256 smoothedLEDInUSD,
         uint256 scaledLEDInUSD
     );
@@ -45,8 +46,10 @@ contract LEDOracle is ILEDOracle {
     constructor(
         address priceFeedOracleAddress,
         address bitcoinOracleAddress,
-        uint256 emaSeedValue,
-        uint256 smoothingFactor,
+        uint256 diffEMASeedValue,
+        uint256 diffSmoothingFactor,
+        uint256 priceEMASeedValue,
+        uint256 priceSmoothingFactor,
         uint256 initScaleFactor,
         uint256 initKoomeyTimeInSeconds
     ) {
@@ -59,7 +62,8 @@ contract LEDOracle is ILEDOracle {
         }
         _priceFeedOracle = IPriceFeed(priceFeedOracleAddress);
         _bitcoinOracle = IBitcoinOracle(bitcoinOracleAddress);
-        _expMovingAvg = new ExpMovingAvg(emaSeedValue, smoothingFactor);
+        _diffExpMovingAvg = new ExpMovingAvg(diffEMASeedValue, diffSmoothingFactor);
+        _rewardExpMovingAvg = new ExpMovingAvg(priceEMASeedValue, priceSmoothingFactor);
         _scaleFactor = initScaleFactor;
         _koomeyTimeInSeconds = initKoomeyTimeInSeconds;
     }
@@ -79,13 +83,17 @@ contract LEDOracle is ILEDOracle {
             revert LEDOracle__InvalidExchangeRate();
         }
 
-        uint256 scaledDiff = scaleDifficulty(currDifficulty);
-        uint256 kLED = FixedPointMathLib.divWadDown(btcReward, scaledDiff);
-        console2.log("kLED", kLED);
-        uint256 smoothedUSDPerBTC = _expMovingAvg.pushValueAndGetAvg(usdPerBTC);
-        console2.log("", smoothedUSDPerBTC);
-        uint256 smoothedLEDInUSD = FixedPointMathLib.mulWadDown(kLED, smoothedUSDPerBTC);
-        //console2.log("", smoothedLEDInUSD);
+        // First scale difficulty with Koomey's law
+        uint256 kDiff = scaleDifficulty(currDifficulty);
+        // Smooth this difficulty using the EMA
+        uint256 smoothedKDiff = _diffExpMovingAvg.pushValueAndGetAvg(kDiff);
+        // Calculate the block reward in USD
+        uint256 blockRewardInUSD = FixedPointMathLib.mulWadDown(btcReward, usdPerBTC);
+        // Smooth this block reward using the EMA
+        uint256 smoothedBlockRewardUSD = _rewardExpMovingAvg.pushValueAndGetAvg(blockRewardInUSD);        
+        // EMA(reward) / EMA(kDiff)
+        uint256 smoothedLEDInUSD = FixedPointMathLib.divWadDown(smoothedBlockRewardUSD, smoothedKDiff);
+        // Scale to hit the $1 target as a starting value
         uint256 scaledLEDInUSD = FixedPointMathLib.mulWadDown(smoothedLEDInUSD, _scaleFactor);
 
         emit LEDPerETHUpdated(
@@ -93,8 +101,9 @@ contract LEDOracle is ILEDOracle {
             currDifficulty,
             btcReward,
             usdPerBTC,
-            kLED,
-            smoothedUSDPerBTC,
+            kDiff,
+            smoothedKDiff,
+            smoothedBlockRewardUSD,
             smoothedLEDInUSD,
             scaledLEDInUSD
         );

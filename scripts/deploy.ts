@@ -92,8 +92,10 @@ export async function deployPriceFeed(
 export async function deployLEDOracle(
     priceFeedOracle: string,
     bitcoinOracle: string,
-    seedValue: string,
-    smoothingFactor: string,
+    diffSeedValue: string,
+    diffSmoothingFactor: string,
+    priceSeedValue: string,
+    priceSmoothingFactor: string,
     initScaleFactor: string,
     initKoomeyTimeInSeconds: string,
     wallet: Wallet,
@@ -109,8 +111,10 @@ export async function deployLEDOracle(
                 [
                     priceFeedOracle,
                     bitcoinOracle,
-                    seedValue,
-                    smoothingFactor,
+                    diffSeedValue,
+                    diffSmoothingFactor,
+                    priceSeedValue,
+                    priceSmoothingFactor,
                     initScaleFactor,
                     initKoomeyTimeInSeconds,
                 ],
@@ -130,8 +134,10 @@ export async function deployLEDOracle(
             ledOracle.deploy(
                 priceFeedOracle,
                 bitcoinOracle,
-                seedValue,
-                smoothingFactor,
+                diffSeedValue,
+                diffSmoothingFactor,
+                priceSeedValue,
+                priceSmoothingFactor,
                 initScaleFactor,
                 initKoomeyTimeInSeconds,
                 {
