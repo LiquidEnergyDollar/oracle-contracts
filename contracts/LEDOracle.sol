@@ -99,7 +99,7 @@ contract LEDOracle is ILEDOracle {
         // Scale to hit the $1 target as a starting value
         uint256 scaledLEDInUSD = FixedPointMathLib.mulWadDown(smoothedLEDInUSD, _scaleFactor);
 
-        emit LEDPerETHUpdated(
+        emit LEDOracleUpdated(
             block.timestamp,
             currDifficulty,
             btcReward,
