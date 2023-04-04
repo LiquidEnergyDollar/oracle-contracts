@@ -21,7 +21,8 @@ contract LEDOracle is ILEDOracle {
 
     IPriceFeed private immutable _priceFeedOracle;
     IBitcoinOracle private immutable _bitcoinOracle;
-    ExpMovingAvg private immutable _expMovingAvg;
+    ExpMovingAvg private immutable _diffExpMovingAvg;
+    ExpMovingAvg private immutable _rewardExpMovingAvg;
     // Used for setting initial price of LED
     uint256 private immutable _scaleFactor;
     uint256 private immutable _koomeyTimeInSeconds;
@@ -30,22 +31,25 @@ contract LEDOracle is ILEDOracle {
     // Last updated price
     uint256 public lastLedPricePerETH;
 
-    event LEDPerETHUpdated(
+    event LEDOracleUpdated(
         uint256 timestamp,
         uint256 currDifficulty,
         uint256 btcReward,
-        uint256 btcPerETH,
-        uint256 raw,
-        uint256 scaled,
-        uint256 smoothed,
-        uint256 pricePerETH
+        uint256 usdPerBTC,
+        uint256 kDiff,
+        uint256 smoothedKDiff,
+        uint256 smoothedBlockRewardUSD,
+        uint256 smoothedLEDInUSD,
+        uint256 scaledLEDInUSD
     );
 
     constructor(
         address priceFeedOracleAddress,
         address bitcoinOracleAddress,
-        uint256 seedValue,
-        uint256 smoothingFactor,
+        uint256 diffEMASeedValue,
+        uint256 diffSmoothingFactor,
+        uint256 priceEMASeedValue,
+        uint256 priceSmoothingFactor,
         uint256 initScaleFactor,
         uint256 initKoomeyTimeInSeconds
     ) {
@@ -58,50 +62,61 @@ contract LEDOracle is ILEDOracle {
         }
         _priceFeedOracle = IPriceFeed(priceFeedOracleAddress);
         _bitcoinOracle = IBitcoinOracle(bitcoinOracleAddress);
-        _expMovingAvg = new ExpMovingAvg(seedValue, smoothingFactor);
+        _diffExpMovingAvg = new ExpMovingAvg(diffEMASeedValue, diffSmoothingFactor);
+        _rewardExpMovingAvg = new ExpMovingAvg(priceEMASeedValue, priceSmoothingFactor);
         _scaleFactor = initScaleFactor;
         _koomeyTimeInSeconds = initKoomeyTimeInSeconds;
     }
 
     /**
-     * @notice Returns the LED per ETH
+     * @notice Returns the USD/LED
      * Updates the contract state to allow for moving avg
-     * @return The LED/ETH ratio
+     * @return The USD/LED ratio
      */
-    function getLEDPerETH() external returns (uint256) {
+    function getUSDPerLED() external returns (uint256) {
         uint256 currDifficulty = _bitcoinOracle.getCurrentEpochDifficulty() * 1e18;
         // Satoshi's have 8 points of precision
         uint256 btcReward = _bitcoinOracle.getBTCIssuancePerBlock() * 1e10;
-        uint256 btcPerETH = _priceFeedOracle.getBTCPerETH();
+        (, uint256 usdPerBTC) = _priceFeedOracle.getExchangeRateFeeds();
 
-        if (btcPerETH == 0) {
+        if (usdPerBTC == 0) {
             revert LEDOracle__InvalidExchangeRate();
         }
 
-        uint256 scaledDiff = scaleDifficulty(currDifficulty);
-        uint256 kLED = FixedPointMathLib.divWadDown(btcReward, scaledDiff);
-        uint256 smoothedLED = _expMovingAvg.pushValueAndGetAvg(kLED);
-        uint256 scaledLED = FixedPointMathLib.mulWadDown(smoothedLED, _scaleFactor);
+        // First scale difficulty with Koomey's law
+        uint256 kDiff = scaleDifficulty(currDifficulty);
+        // Smooth this difficulty using the EMA
+        uint256 smoothedKDiff = _diffExpMovingAvg.pushValueAndGetAvg(kDiff);
+        // Calculate the block reward in USD
+        uint256 blockRewardInUSD = FixedPointMathLib.mulWadDown(btcReward, usdPerBTC);
+        // Smooth this block reward using the EMA
+        uint256 smoothedBlockRewardUSD = _rewardExpMovingAvg.pushValueAndGetAvg(blockRewardInUSD);
+        // EMA(reward) / EMA(kDiff)
+        uint256 smoothedLEDInUSD = FixedPointMathLib.divWadDown(
+            smoothedBlockRewardUSD,
+            smoothedKDiff
+        );
+        // Scale to hit the $1 target as a starting value
+        uint256 scaledLEDInUSD = FixedPointMathLib.mulWadDown(smoothedLEDInUSD, _scaleFactor);
 
-        lastLedPricePerETH = FixedPointMathLib.divWadDown(scaledLED, btcPerETH);
-
-        emit LEDPerETHUpdated(
+        emit LEDOracleUpdated(
             block.timestamp,
             currDifficulty,
             btcReward,
-            btcPerETH,
-            kLED,
-            scaledLED,
-            smoothedLED,
-            lastLedPricePerETH
+            usdPerBTC,
+            kDiff,
+            smoothedKDiff,
+            smoothedBlockRewardUSD,
+            smoothedLEDInUSD,
+            scaledLEDInUSD
         );
 
-        return lastLedPricePerETH;
+        return scaledLEDInUSD;
     }
 
     /**
      * @notice Scale difficulty to account for energy efficiency improvements
-     * Energy efficiency doubles in KOOMEY_DOUBLE_TIME_IN_MONTHS
+     * Energy efficiency doubles in _koomeyTimeInSeconds
      * @return The scaled difficulty based on Koomey's law
      */
     function scaleDifficulty(uint256 currDifficulty) public view returns (uint256) {

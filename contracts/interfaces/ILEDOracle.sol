@@ -1,7 +1,7 @@
 pragma solidity ^0.8.17;
 
 interface ILEDOracle {
-    // @notice Returns the LED per ETH
+    // @notice Returns the USD per LED
     // Updates the contract state to allow for moving avg
-    function getLEDPerETH() external returns (uint256);
+    function getUSDPerLED() external returns (uint256);
 }

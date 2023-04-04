@@ -43,8 +43,10 @@ async function main(wallet?: Wallet, gasOpts?: GasOptions): Promise<void> {
                         deployLEDOracle(
                             getContractAddress(`PriceFeed`),
                             getContractAddress(`BTCRelay`),
-                            ledProperties.seedValue,
-                            ledProperties.smoothingFactor,
+                            ledProperties.diffSeedValue,
+                            ledProperties.diffSmoothingFactor,
+                            ledProperties.priceSeedValue,
+                            ledProperties.priceSmoothingFactor,
                             ledProperties.initScaleFactor,
                             ledProperties.initKoomeyTimeInSeconds,
                             wallet!,
@@ -60,8 +62,8 @@ async function main(wallet?: Wallet, gasOpts?: GasOptions): Promise<void> {
             const addr = askForContract(`PriceFeed`);
             const priceFeed: PriceFeed = await ethers.getContractAt(`PriceFeed`, addr);
 
-            const btcPerETH: BigNumber = await priceFeed.getBTCPerETH();
-            console.log(`current btcPerETH: ${btcPerETH}`);
+            const btcETHPrices = await priceFeed.getExchangeRateFeeds();
+            console.log(`current btcPerETH: ${btcETHPrices}`);
             void main(wallet, gasOpts);
             return;
         }
