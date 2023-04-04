@@ -31,7 +31,7 @@ contract LEDOracle is ILEDOracle {
     // Last updated price
     uint256 public lastLedPricePerETH;
 
-    event LEDPerETHUpdated(
+    event LEDOracleUpdated(
         uint256 timestamp,
         uint256 currDifficulty,
         uint256 btcReward,
