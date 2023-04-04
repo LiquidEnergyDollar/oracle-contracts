@@ -64,8 +64,11 @@ contract PriceFeedTest is Test {
         assertEq(btcPerETH, uint256(ethPrice * 1e10));
         assertEq(usdPerBTC, uint256(btcPrice * 1e10));
     }
-    function mockOracleResponses(int256 btcPrice, int256 ethPrice) private
-    returns (uint256, uint256) {
+
+    function mockOracleResponses(
+        int256 btcPrice,
+        int256 ethPrice
+    ) private returns (uint256, uint256) {
         // BTC chainlink contract
         vm.mockCall(
             _btcOracle,

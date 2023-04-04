@@ -90,9 +90,12 @@ contract LEDOracle is ILEDOracle {
         // Calculate the block reward in USD
         uint256 blockRewardInUSD = FixedPointMathLib.mulWadDown(btcReward, usdPerBTC);
         // Smooth this block reward using the EMA
-        uint256 smoothedBlockRewardUSD = _rewardExpMovingAvg.pushValueAndGetAvg(blockRewardInUSD);        
+        uint256 smoothedBlockRewardUSD = _rewardExpMovingAvg.pushValueAndGetAvg(blockRewardInUSD);
         // EMA(reward) / EMA(kDiff)
-        uint256 smoothedLEDInUSD = FixedPointMathLib.divWadDown(smoothedBlockRewardUSD, smoothedKDiff);
+        uint256 smoothedLEDInUSD = FixedPointMathLib.divWadDown(
+            smoothedBlockRewardUSD,
+            smoothedKDiff
+        );
         // Scale to hit the $1 target as a starting value
         uint256 scaledLEDInUSD = FixedPointMathLib.mulWadDown(smoothedLEDInUSD, _scaleFactor);
 

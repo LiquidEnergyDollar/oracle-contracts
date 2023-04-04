@@ -13,8 +13,8 @@ contract LEDOracleTest is Test {
     uint256 private constant KOOMEY_START_DATE = 1444309200; // 10/08/2015
     uint256 private constant MAX_DATE = 2104819200; // 2036
     uint256 private constant EXAMPLE_KOOMEY_PERIOD_IN_SECS = 41472000; // 16 months
-    uint256 private constant EXAMPLE_DIFF_SMOOTHING_FACTOR = 30*8*24*1e18; // 4 month lag 
-    uint256 private constant EXAMPLE_PRICE_SMOOTHING_FACTOR = 30*18*24*1e18; // 9 month lag
+    uint256 private constant EXAMPLE_DIFF_SMOOTHING_FACTOR = 30 * 8 * 24 * 1e18; // 4 month lag
+    uint256 private constant EXAMPLE_PRICE_SMOOTHING_FACTOR = 30 * 18 * 24 * 1e18; // 9 month lag
     uint256 private constant ONE_HOUR_IN_SECS = 3600;
     LEDOracle public _ledOracle;
     address private _bitcoinOracle = address(0);
