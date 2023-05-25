@@ -7,9 +7,10 @@ task(`setGenesis`, `Sets genesis epoch for BTC relay`)
     .setAction(async (taskArgs, hre) => {
         const height = Number(taskArgs.height);
         const prooflength = Number(taskArgs.prooflength);
+        const network = String(hre.network.name);
 
         const factory = await hre.ethers.getContractFactory(`BTCRelay`);
-        const btcRelayAddress = getContractAddress(`BTCRelay`);
+        const btcRelayAddress = getContractAddress(`BTCRelay`, network);
         console.log(btcRelayAddress);
         const btcRelay = factory.attach(btcRelayAddress);
 
@@ -18,8 +19,9 @@ task(`setGenesis`, `Sets genesis epoch for BTC relay`)
     });
 
 task(`retarget`, `Sets next epoch difficulty for BTC relay`).setAction(async (_, hre) => {
+    const network = String(hre.network.name);
     const factory = await hre.ethers.getContractFactory(`BTCRelay`);
-    const btcRelayAddress = getContractAddress(`BTCRelay`);
+    const btcRelayAddress = getContractAddress(`BTCRelay`, network);
     const btcRelay = factory.attach(btcRelayAddress);
 
     const relayRange = await btcRelay.getRelayRange();
@@ -31,8 +33,9 @@ task(`retarget`, `Sets next epoch difficulty for BTC relay`).setAction(async (_,
 });
 
 task(`getbtcdiff`, `Gets current BTC difficulty from BTC relay`).setAction(async (_, hre) => {
+    const network = String(hre.network.name);
     const factory = await hre.ethers.getContractFactory(`BTCRelay`);
-    const btcRelayAddress = getContractAddress(`BTCRelay`);
+    const btcRelayAddress = getContractAddress(`BTCRelay`, network);
     const btcRelay = factory.attach(btcRelayAddress);
 
     const currDiff = await btcRelay.getCurrentEpochDifficulty();
@@ -40,8 +43,9 @@ task(`getbtcdiff`, `Gets current BTC difficulty from BTC relay`).setAction(async
 });
 
 task(`getbtcissuance`, `Gets current BTC issuance from BTC relay`).setAction(async (_, hre) => {
+    const network = String(hre.network.name);
     const factory = await hre.ethers.getContractFactory(`BTCRelay`);
-    const btcRelayAddress = getContractAddress(`BTCRelay`);
+    const btcRelayAddress = getContractAddress(`BTCRelay`, network);
     const btcRelay = factory.attach(btcRelayAddress);
 
     const currIssuance = await btcRelay.getBTCIssuancePerBlock();

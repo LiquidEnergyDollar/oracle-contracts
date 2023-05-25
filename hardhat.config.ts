@@ -49,6 +49,7 @@ export const chainIds = {
     "polygon-mumbai": 80001,
     "zksync-goerli": 280,
     "zksync-mainnet": 324,
+    "base-goerli": 84531,
 };
 
 function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
@@ -87,6 +88,9 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
         case `zksync-mainnet`:
             jsonRpcUrl = `https://zksync2-mainnet.zksync.io`;
             break;
+        case `base-goerli`:
+            jsonRpcUrl = `https://goerli.base.org`;
+            break;
         default:
             jsonRpcUrl = `https://${chain}.infura.io/v3/${process.env.INFURA_API_KEY}`;
     }
@@ -98,6 +102,7 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
         chainId: chainIds[chain],
         url: jsonRpcUrl,
         zksync: ZK_EVM,
+        allowUnlimitedContractSize: true,
     };
 }
 
@@ -134,6 +139,8 @@ export function explorerUrl(chainId: number | undefined, type: UrlType, param: s
             return `https://goerli.explorer.zksync.io/${type}/${param}`;
         case chainIds[`zksync-mainnet`]:
             return `https://explorer.zksync.io/${type}/${param}`;
+        case chainIds[`base-goerli`]:
+            return `https://goerli.basescan.org/${type}/${param}`;
         default:
             return `https://etherscan.io/${type}/${param}`;
     }
@@ -210,6 +217,7 @@ const config: HardhatUserConfig = {
         "polygon-mumbai": getChainConfig(`polygon-mumbai`),
         "zksync-goerli": getChainConfig(`zksync-goerli`),
         "zksync-mainnet": getChainConfig(`zksync-mainnet`),
+        "base-goerli": getChainConfig(`base-goerli`),
     },
     gasReporter: {
         currency: `USD`,
@@ -233,6 +241,7 @@ const config: HardhatUserConfig = {
             "polygon-mumbai": process.env.POLYGONSCAN_API_KEY || ``,
             "zksync-goerli": process.env.ZKSYNC_API_KEY || ``,
             "zksync-mainnet": process.env.ZKSYNC_API_KEY || ``,
+            "base-goerli": process.env.ETHERSCAN_API_KEY || ``,
         },
     },
     typechain: {

@@ -92,7 +92,7 @@ npm run test
 
 This will run everything in [integration/](./integration/), which utilizes [Hardhat](https://hardhat.org/hardhat-runner/docs/getting-started#overview) to tests for full usage scenarios.
 
-#### [Deploy to Optimism network](#deploy-to-optimism-network)
+#### [Deploy to a network](#deploy-to-a-network)
 
 Create a [.env](./.env) file matching the variables seen in [.env.example](./.env.example).
 
@@ -109,10 +109,37 @@ Getting fully prepared may involve getting a [`INFURA_API_KEY`](https://docs.inf
 Then run:
 
 ```sh
-npm run deploy -- --network optimism
+npm run deploy -- --network [NETWORK]
 ```
 
 This will automatically update [deployments.json](./deployments.json), which gets exported with your [NPM package](./package.json). It will also become the default address to use when interacting with your contracts with the [CLI](./scripts/console).
+
+#### [Update the BTCRelay](#update-the-btcrelay)
+
+The BTCRelay contract can be initialized and updated using the [btcRelay hardhat tasks](./tasks/btcRelay.ts). 
+
+After deployment, look up the current BTC block number and divide by 2016 (round down) to get the current epoch. You can then multiply the current epoch by 2016 to get the starting block of the epoch.
+
+Then initialize the BTCRelay by running:
+
+```sh
+npx hardhat setGenesis --height [EPOCH_STARTING_BLOCK_HEIGHT] --prooflength 10 --network [NETWORK]
+```
+
+Run `getbtcdiff` to get the current difficulty.
+```sh
+npx hardhat getbtcdiff --network base-goerli
+```
+
+Run `getbtcissuance` to get the current btc issuance per block.
+```sh
+npx hardhat getbtcissuance --network base-goerli
+```
+
+And `retarget` to generate the next epoch proof and update the btcRelay state. This should be updated every 2016 blocks.
+```sh
+npx hardhat retarget --network base-goerli
+```
 
 #### [Generate documentation](#generate-documentation)
 

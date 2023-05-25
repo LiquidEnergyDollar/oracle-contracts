@@ -126,10 +126,9 @@ export const getBtcHeaders = async (height: number, proofLength?: number): Promi
     }
 };
 
-export const getContractAddress = (contractName: string): string => {
+export const getContractAddress = (contractName: string, networkName: string): string => {
     for (const deployment of deploymentsJson.deployments) {
-        // Default to optimism deployments
-        if (deployment.network == `optimism`) {
+        if (deployment.network == networkName) {
             for (const contract of deployment.contracts) {
                 if (contract.name == contractName) {
                     return contract.address;

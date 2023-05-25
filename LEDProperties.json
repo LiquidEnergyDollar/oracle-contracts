@@ -1,8 +1,8 @@
 {
-    "diffSeedValue": "433805858724000000",
+    "diffSeedValue": "62326918873479252799725695624",
     "diffSmoothingFactor": "5760000000000000000000",
-    "priceSeedValue": "172325000000000000",
+    "priceSeedValue": "11430328150738126272341",
     "priceSmoothingFactor": "12960000000000000000000",
-    "initScaleFactor": "2517591727165182072382523",
+    "initScaleFactor": "5449464264719052999638648",
     "initKoomeyTimeInSeconds": "41472000"
 }

@@ -26,8 +26,8 @@ async function main(wallet?: Wallet, gasOpts?: GasOptions): Promise<void> {
                 await trackDeployment(
                     () =>
                         deployPriceFeed(
-                            `0xD702DD976Fb76Fffc2D3963D037dfDae5b04E593`,
-                            `0x13e3Ee699D1909E989722E753853AE30b17e08c5`,
+                            getContractAddress(`BtcOracleContract`, network.name),
+                            getContractAddress(`EthOracleContract`, network.name),
                             wallet!,
                             gasOpts,
                         ),
@@ -41,8 +41,8 @@ async function main(wallet?: Wallet, gasOpts?: GasOptions): Promise<void> {
                 await trackDeployment(
                     () =>
                         deployLEDOracle(
-                            getContractAddress(`PriceFeed`),
-                            getContractAddress(`BTCRelay`),
+                            getContractAddress(`PriceFeed`, network.name),
+                            getContractAddress(`BTCRelay`, network.name),
                             ledProperties.diffSeedValue,
                             ledProperties.diffSmoothingFactor,
                             ledProperties.priceSeedValue,

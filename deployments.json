@@ -4,6 +4,14 @@
             "network": "optimism",
             "contracts": [
                 {
+                    "name": "BtcOracleContract",
+                    "address": "0xD702DD976Fb76Fffc2D3963D037dfDae5b04E593"
+                },
+                {
+                    "name": "EthOracleContract",
+                    "address": "0x13e3Ee699D1909E989722E753853AE30b17e08c5"
+                },
+                {
                     "name": "PriceFeed",
                     "address": "0xFd8262b391f699B83FE09C0436349d8FD00Ce6fF"
                 },
@@ -14,6 +22,56 @@
                 {
                     "name": "LEDOracle",
                     "address": "0x809779F57FB9342e793Fe6749A56610cCA5b4646"
+                }
+            ]
+        },
+        {
+            "network": "base-goerli",
+            "contracts": [
+                {
+                    "name": "BtcOracleContract",
+                    "address": "0xAC15714c08986DACC0379193e22382736796496f"
+                },
+                {
+                    "name": "EthOracleContract",
+                    "address": "0xcD2A119bD1F7DF95d706DE6F2057fDD45A0503E2"
+                },
+                {
+                    "name": "PriceFeed",
+                    "address": "0x9fdEb7D1AaCd16ecD2e5B7a1e8DBEee8D48130D6"
+                },
+                {
+                    "name": "BTCRelay",
+                    "address": "0x720ce8531f0fd79A61fdCB80215C1C761Fe94F23"
+                },
+                {
+                    "name": "LEDOracle",
+                    "address": "0xb8DB22DA8A16bB2a9339301c19B30BcD55248aab"
+                }
+            ]
+        },
+        {
+            "network": "goerli",
+            "contracts": [
+                {
+                    "name": "BtcOracleContract",
+                    "address": "0xA39434A63A52E749F02807ae27335515BA4b07F7"
+                },
+                {
+                    "name": "EthOracleContract",
+                    "address": "0xD4a33860578De61DBAbDc8BFdb98FD742fA7028e"
+                },
+                {
+                    "name": "PriceFeed",
+                    "address": "0xB6BD1b1BebE8AAc874e95a4Ea980d315B52fE63A"
+                },
+                {
+                    "name": "BTCRelay",
+                    "address": "0x9fdEb7D1AaCd16ecD2e5B7a1e8DBEee8D48130D6"
+                },
+                {
+                    "name": "LEDOracle",
+                    "address": "0xaE06D0ACa4e41c7F61B07d85Dc7690cdf00D950d"
                 }
             ]
         }
