@@ -74,6 +74,31 @@
                     "address": "0xaE06D0ACa4e41c7F61B07d85Dc7690cdf00D950d"
                 }
             ]
+        },
+        {
+            "network": "sepolia",
+            "contracts": [
+                {
+                    "name": "BtcOracleContract",
+                    "address": "0x1b44F3514812d835EB1BDB0acB33d3fA3351Ee43"
+                },
+                {
+                    "name": "EthOracleContract",
+                    "address": "0x694AA1769357215DE4FAC081bf1f309aDC325306"
+                },
+                {
+                    "name": "PriceFeed",
+                    "address": "0x4CF9e0E48bbe5cb03aB2017033D922150D853F5b"
+                },
+                {
+                    "name": "BTCRelay",
+                    "address": "0x1A5e439B79cfE89989c495a541e2095a2f70CDBa"
+                },
+                {
+                    "name": "LEDOracle",
+                    "address": "0x637Da92c06a9c1c9Fc0Ae3700aCe13fE8e1d74E7"
+                }
+            ]
         }
     ]
 }

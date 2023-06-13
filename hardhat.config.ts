@@ -50,6 +50,7 @@ export const chainIds = {
     "zksync-goerli": 280,
     "zksync-mainnet": 324,
     "base-goerli": 84531,
+    sepolia: 11155111,
 };
 
 function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
@@ -218,6 +219,7 @@ const config: HardhatUserConfig = {
         "zksync-goerli": getChainConfig(`zksync-goerli`),
         "zksync-mainnet": getChainConfig(`zksync-mainnet`),
         "base-goerli": getChainConfig(`base-goerli`),
+        sepolia: getChainConfig(`sepolia`),
     },
     gasReporter: {
         currency: `USD`,
@@ -242,6 +244,7 @@ const config: HardhatUserConfig = {
             "zksync-goerli": process.env.ZKSYNC_API_KEY || ``,
             "zksync-mainnet": process.env.ZKSYNC_API_KEY || ``,
             "base-goerli": process.env.ETHERSCAN_API_KEY || ``,
+            sepolia: process.env.ETHERSCAN_API_KEY || ``,
         },
     },
     typechain: {
